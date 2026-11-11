@@ -1,0 +1,20 @@
+{
+  "name": "campusq-backend-foundation",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.12.0"
+  },
+  "scripts": {
+    "test:rules": "npx -y firebase-tools@latest emulators:exec --project demo-campusq-local --only auth,firestore,functions \"node --test --test-concurrency=1 backend/tests/*.test.mjs\"",
+    "emulators": "npx -y firebase-tools@latest emulators:start --project demo-campusq-local --only auth,firestore,functions",
+    "test:all": "npx -y firebase-tools@latest emulators:exec --project demo-campusq-local --only auth,firestore,functions \"node backend/tests/run-all.cjs\""
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "6.0.0",
+    "firebase": "13.2.0"
+  },
+  "overrides": {
+    "@grpc/grpc-js": "1.14.7"
+  }
+}

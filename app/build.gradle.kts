@@ -1,6 +1,17 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.google.services) apply false
+}
+
+// Explicit opt-in prevents an absent/private config from breaking Demo Mode builds.
+val firebaseConfigured = providers.gradleProperty("campusq.firebase.enabled")
+    .map(String::toBooleanStrict).getOrElse(false)
+if (firebaseConfigured) {
+    check(file("google-services.json").isFile) {
+        "Firebase enabled: provide genuine app/google-services.json for com.example.campusq."
+    }
+    apply(plugin = "com.google.gms.google-services")
 }
 
 android {
@@ -19,6 +30,8 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        // Keep automatic discovery scoped to app tests as the SDK classpath grows.
+        testInstrumentationRunnerArguments["package"] = "com.example.campusq"
     }
 
     buildTypes {
@@ -38,6 +51,11 @@ android {
 }
 
 dependencies {
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore)
+    implementation(libs.firebase.functions)
+    implementation(libs.firebase.messaging)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)

@@ -36,3 +36,5 @@ docs/phase-2/evidence/initial-captures/
 docs/phase-2/evidence/final-captures/
 docs/phase-2/evidence/results/
 docs/phase-3/evidence/
+docs/firebase/SECURITY_ANALYSIS.local.md
+*.local.json

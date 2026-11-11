@@ -1,9 +1,22 @@
-# CampusQ — UI/UX Implementation Progress & Verification Record
+# CampusQ — Development progress
 
-**Current milestone:** Phase 2 implementation and mobile verification; broader acceptance matrix remains open.  
-**Work dates:** 2026-11-09–10, Asia/Manila.  
-**Latest completed pass:** debug APK PASS; local tests 27/27 PASS; device tests 62/62 PASS; Gradle lint 0 errors / 19 warnings. The final header contrast rerun also passed.  
-**Phase boundary:** No Firebase or Phase 3 work started; explicit authorization is required before any later phase.
+## Phase 3 — Firebase foundation (2026-11-11)
+Current status: available local Phase 3 foundation complete and verified; real-project setup remains blocked.
+Real connection: BLOCKED, no authorized Firebase CLI account or real project configuration. Approved target is a new CampusQ project, Standard(default), asia-southeast1, com.example.campusq. No billing enabled.
+Completed: Git baseline 49b6315; optional Google Services processing; Firebase SDK dependencies; deny-all prototype rules; schema/index/role-trust documentation; emulator configuration; shared demo-state and asynchronous catalog boundaries. All 23 screens and five brand assets preserved. Demo Mode remains active.
+Verified: Gradle Sync and debug APK PASS; 33 local tests PASS; 59 backend emulator tests PASS; 63 device tests PASS (0 failures/skips, Pixel 7/API 37); lint 0 errors/20 warnings. Final combined build succeeded in 6m 22s. npm audits report 0 vulnerabilities after patched grpc-js override.
+Limitations: genuine Firebase connection/deployed rules/indexes and Android callable/FCM verification remain unverified; Functions emulator refusal is tested with Node. No cloud/billing changes. Phase 2 accessibility/device acceptance remains open.
+Phase 4 unstarted; no login workflow, live queue, role provisioning or remote deployment.
+[Phase 3 plan](CAMPUSQ_PHASE_3_PLAN.md) · [Phase 3 report](CAMPUSQ_PHASE_3_COMPLETION_REPORT.md) · [Firebase setup](docs/firebase/SETUP.md)
+
+---
+
+# Phase 2 — Historical UI/UX implementation and verification record
+
+**Milestone at Phase 2 handoff:** Phase 2 implementation and mobile verification; broader acceptance matrix remains open.
+**Work dates:** 2026-11-09–10, Asia/Manila.
+**Latest completed pass:** debug APK PASS; local tests 27/27 PASS; device tests 62/62 PASS; Gradle lint 0 errors / 19 warnings. The final header contrast rerun also passed.
+**Phase boundary at that handoff:** Firebase and Phase 3 had not started. Current Phase 3 status is above.
 
 [Phase 2 report](CAMPUSQ_PHASE_2_REPORT.md) · [Plan and issue resolution](CAMPUSQ_PHASE_2_PLAN.md) · [Retained evidence](docs/phase-2/evidence/)
 
@@ -43,7 +56,7 @@ Final color refinement passed the same full application checks: BUILD SUCCESSFUL
 - All 19 remaining Gradle warnings were investigated: 10 SDK/dependency notices, 7 preserved unused XML colors and 2 preserved launcher-resource warnings.
 - Local state resets with process death. Role Preview, notification preferences and editable schedule descriptions remain demo functionality, not remote authentication, delivery or authoritative scheduling.
 - Full cross-device/accessibility acceptance is not yet met. Detailed scope and actual test evidence are in the completion report.
-- Phase 3–12 remain unstarted.
+- At the Phase 2 handoff, Phases 3–12 were unstarted; current Phase 3 status is above.
 
 ## Historical frontend implementation record
 
@@ -121,7 +134,7 @@ The inventory and delivery claims below were inherited from the initial frontend
 
 ## 3. Historical Backend Recommendations — Deferred
 
-These initial recommendations are superseded by the current Phase 2 UI/UX testing gate. Do not execute them until a later phase is explicitly authorized.
+These initial workflow recommendations were deferred at the Phase 2 handoff. Current Phase 3 foundation scope and results take precedence; authentication and live backend workflows still require later authorization.
 
 1. Connect Firebase Authentication to `LoginScreen` and `RegistrationScreen`.
 2. Replace `DemoRepository` with Firestore-backed repositories while keeping `CampusQViewModel` and all 23 Compose screens unchanged.

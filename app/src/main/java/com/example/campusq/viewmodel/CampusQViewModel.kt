@@ -1,6 +1,7 @@
 package com.example.campusq.viewmodel
 
 import androidx.lifecycle.ViewModel
+import com.example.campusq.data.repository.CampusQStateSource
 import com.example.campusq.data.demo.DemoRepository
 import com.example.campusq.data.model.Appointment
 import com.example.campusq.data.model.AppointmentStatus
@@ -20,16 +21,18 @@ import kotlinx.coroutines.flow.asStateFlow
 
 class CampusQViewModel(private val repository: DemoRepository = DemoRepository()) : ViewModel() {
 
-    val studentProfile: StateFlow<StudentProfile> = repository.studentProfile
-    val currentStaffProfile: StateFlow<StaffProfile> = repository.currentStaffProfile
-    val services: StateFlow<List<RegistrarService>> = repository.services
-    val staffMembers: StateFlow<List<StaffProfile>> = repository.staffMembers
-    val queueTickets: StateFlow<List<QueueTicket>> = repository.queueTickets
-    val studentTicketId: StateFlow<String?> = repository.studentTicketId
-    val appointments: StateFlow<List<Appointment>> = repository.appointments
-    val transactions: StateFlow<List<TransactionRecord>> = repository.transactions
-    val notifications: StateFlow<List<NotificationItem>> = repository.notifications
-    val institutionSettings: StateFlow<InstitutionSettings> = repository.institutionSettings
+    private val state: CampusQStateSource = repository
+
+    val studentProfile: StateFlow<StudentProfile> = state.studentProfile
+    val currentStaffProfile: StateFlow<StaffProfile> = state.currentStaffProfile
+    val services: StateFlow<List<RegistrarService>> = state.services
+    val staffMembers: StateFlow<List<StaffProfile>> = state.staffMembers
+    val queueTickets: StateFlow<List<QueueTicket>> = state.queueTickets
+    val studentTicketId: StateFlow<String?> = state.studentTicketId
+    val appointments: StateFlow<List<Appointment>> = state.appointments
+    val transactions: StateFlow<List<TransactionRecord>> = state.transactions
+    val notifications: StateFlow<List<NotificationItem>> = state.notifications
+    val institutionSettings: StateFlow<InstitutionSettings> = state.institutionSettings
 
     private val _snackbarMessage = MutableStateFlow<String?>(null)
     val snackbarMessage: StateFlow<String?> = _snackbarMessage.asStateFlow()

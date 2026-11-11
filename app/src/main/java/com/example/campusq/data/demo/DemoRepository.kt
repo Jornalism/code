@@ -13,6 +13,7 @@ import com.example.campusq.data.model.StaffProfile
 import com.example.campusq.data.model.StudentProfile
 import com.example.campusq.data.model.TransactionRecord
 import com.example.campusq.data.model.TransactionType
+import com.example.campusq.data.repository.CampusQStateSource
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,7 +27,7 @@ import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-class DemoRepository(private val clock: java.time.Clock = java.time.Clock.systemDefaultZone()) {
+class DemoRepository(private val clock: java.time.Clock = java.time.Clock.systemDefaultZone()) : CampusQStateSource {
 
     private val dateFormatter = DateTimeFormatter.ofPattern("MMM dd, yyyy", Locale.US)
     private val timeFormatter = DateTimeFormatter.ofPattern("h:mm a", Locale.US)
@@ -44,7 +45,7 @@ class DemoRepository(private val clock: java.time.Clock = java.time.Clock.system
             yearLevel = "4th Year"
         )
     )
-    val studentProfile: StateFlow<StudentProfile> = _studentProfile.asStateFlow()
+    override val studentProfile: StateFlow<StudentProfile> = _studentProfile.asStateFlow()
 
     private val _currentStaffProfile = MutableStateFlow(
         StaffProfile(
@@ -56,31 +57,31 @@ class DemoRepository(private val clock: java.time.Clock = java.time.Clock.system
             isActive = true
         )
     )
-    val currentStaffProfile: StateFlow<StaffProfile> = _currentStaffProfile.asStateFlow()
+    override val currentStaffProfile: StateFlow<StaffProfile> = _currentStaffProfile.asStateFlow()
 
     private val _services = MutableStateFlow(initialServices())
-    val services: StateFlow<List<RegistrarService>> = _services.asStateFlow()
+    override val services: StateFlow<List<RegistrarService>> = _services.asStateFlow()
 
     private val _staffMembers = MutableStateFlow(initialStaffMembers())
-    val staffMembers: StateFlow<List<StaffProfile>> = _staffMembers.asStateFlow()
+    override val staffMembers: StateFlow<List<StaffProfile>> = _staffMembers.asStateFlow()
 
     private val _queueTickets = MutableStateFlow(initialQueueTickets())
-    val queueTickets: StateFlow<List<QueueTicket>> = _queueTickets.asStateFlow()
+    override val queueTickets: StateFlow<List<QueueTicket>> = _queueTickets.asStateFlow()
 
     private val _studentTicketId = MutableStateFlow<String?>("tkt-r001")
-    val studentTicketId: StateFlow<String?> = _studentTicketId.asStateFlow()
+    override val studentTicketId: StateFlow<String?> = _studentTicketId.asStateFlow()
 
     private val _appointments = MutableStateFlow(initialAppointments())
-    val appointments: StateFlow<List<Appointment>> = _appointments.asStateFlow()
+    override val appointments: StateFlow<List<Appointment>> = _appointments.asStateFlow()
 
     private val _transactions = MutableStateFlow(initialTransactions())
-    val transactions: StateFlow<List<TransactionRecord>> = _transactions.asStateFlow()
+    override val transactions: StateFlow<List<TransactionRecord>> = _transactions.asStateFlow()
 
     private val _notifications = MutableStateFlow(initialNotifications())
-    val notifications: StateFlow<List<NotificationItem>> = _notifications.asStateFlow()
+    override val notifications: StateFlow<List<NotificationItem>> = _notifications.asStateFlow()
 
     private val _institutionSettings = MutableStateFlow(InstitutionSettings())
-    val institutionSettings: StateFlow<InstitutionSettings> = _institutionSettings.asStateFlow()
+    override val institutionSettings: StateFlow<InstitutionSettings> = _institutionSettings.asStateFlow()
 
     private var ticketSequence = 11
     private var serviceSequence = 1

@@ -1,0 +1,11 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Phase 3 closed foundation. Schema: docs/firebase/FIRESTORE_SCHEMA.md.
+    // No mobile permissions exist yet, even for staff/admin custom claims.
+    // Admin SDK bypasses these rules: later commands must authorize independently.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
