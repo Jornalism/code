@@ -1,0 +1,47 @@
+Legend: C01=Medium Phone - Small phone, large text(Baseline), C02=Unfolded Foldable - Small phone, large text, C03=Medium Tablet - Small phone, large text(Dpi=240,Orient=LANDSCAPE), C04=Medium Phone-Landscape - Small phone, large text(Orient=LANDSCAPE), C05=130% - Small phone, large text(Font=1.3), C06=3-button Navigation with Corner Cutout - Small phone, large text, C07=Light - Small phone, large text, C08=Dark - Small phone, large text(Night=NIGHT), C09=Original - Small phone, large text, C10=Protanopes - Small phone, large text, C11=Protanomaly - Small phone, large text, C12=Deuteranopes - Small phone, large text, C13=Deuteranomaly - Small phone, large text, C14=Tritanopes - Small phone, large text, C15=Tritanomaly - Small phone, large text, C16=Desktop - Small phone, large text(Dpi=160,Orient=LANDSCAPE), C17=85% - Small phone, large text(Font=0.85), C18=100% - Small phone, large text(Font=1.0), C19=115% - Small phone, large text(Font=1.15), C20=180% - Small phone, large text(Font=1.8), C21=200% - Small phone, large text(Font=2.0), C22=Gesture Navigation with Tall Cutout - Small phone, large text
+
+## Issue 1 @ CampusQNavigationWidgets.kt:L1 (C01-C15)
+* Error: Content of TextView is partially covered by Composable in 15 preview configurations.This may affect text readability. Fix this issue by adjusting widget positioning.
+
+## Issue 2 @ CampusQNavigationWidgets.kt:L1 (C01-C09, C16-C22)
+* Error: The item's text contrast ratio is 1.55. This ratio is based on an estimated foreground color of #CBD1CD and an estimated background color of #FFFFFF. Consider using colors that result in a contrast ratio greater than 4.50 for small text, or 3.00 for large text.
+
+## Issue 3 @ CampusQNavigationWidgets.kt:L1 (C01-C20, C22)
+* Error: This item's width is 37dp. Consider making the width of this touch target 48dp or larger.
+
+## Issue 4 @ CampusQNavigationWidgets.kt:L1 (C01-C22)
+* Error: RadioButton is partially hidden in layout because it is not contained within the bounds of its parent in 22 preview configurations.Fix this issue by adjusting the size or position of RadioButton.
+
+## Issue 5 @ CampusQNavigationWidgets.kt:L102 (C01-C09, C16-C22)
+* Error: The item's text contrast ratio is 4.13. This ratio is based on an estimated foreground color of #FFFFFF and an estimated background color of #1B8F4D. Consider using colors that result in a contrast ratio greater than 4.50 for small text, or 3.00 for large text.
+* Code: `Row(verticalAlignment = Alignment.CenterVertically) { Text( text = title, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false), style = MaterialTheme.typography.titleLarge.copy( color = Color.White, fontWeight = FontWeight.Bold, fontSize = 19.sp ) ) if (showDemoBadge) { Spacer(modifier = Modifier.width(8.dp)) CampusQDemoLabel(isOnDarkHeader = true) } }`
+
+## Issue 6 @ CampusQNavigationWidgets.kt:L179 (C01-C22)
+* Error: Content of TextView is partially covered by Composable in 22 preview configurations.This may affect text readability. Fix this issue by adjusting widget positioning.
+* Code: `NavigationBarItem( selected = selected, onClick = { onNavigate(dest.route) }, icon = { Icon( imageVector = dest.icon, contentDescription = dest.label, modifier = Modifier.size(22.dp) ) }, label = { Text( text = if (LocalDensity.current.fontScale > 1.3f) { when (dest.label) { "Appointments" -> "Appts"; "Dashboard" -> "Home"; else -> dest.label } } else dest.label, style = MaterialTheme.typography.labelSmall.copy( fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal ), maxLines = 1, overflow = TextOverflow.Ellipsis ) }, colors = NavigationBarItemDefaults.colors( selectedIconColor = activeColor, selectedTextColor = activeColor, indicatorColor = activeContainerColor, unselectedIconColor = CampusQTextSecondary, unselectedTextColor = CampusQTextPrimary ) )`
+
+## Issue 7 @ CampusQNavigationWidgets.kt:L1 (C01-C22)
+* Error: Content of TextView is partially covered by RadioButton in 22 preview configurations.This may affect text readability. Fix this issue by adjusting widget positioning.
+
+## Issue 8 @ CampusQNavigationWidgets.kt:L179 (C01-C03, C05-C09, C16-C22)
+* Error: The item's text contrast ratio is 4.41. This ratio is based on an estimated foreground color of #66736B and an estimated background color of #EAF4EE. Consider using colors that result in a contrast ratio greater than 4.50 for small text, or 3.00 for large text.
+* Code: `NavigationBarItem( selected = selected, onClick = { onNavigate(dest.route) }, icon = { Icon( imageVector = dest.icon, contentDescription = dest.label, modifier = Modifier.size(22.dp) ) }, label = { Text( text = if (LocalDensity.current.fontScale > 1.3f) { when (dest.label) { "Appointments" -> "Appts"; "Dashboard" -> "Home"; else -> dest.label } } else dest.label, style = MaterialTheme.typography.labelSmall.copy( fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal ), maxLines = 1, overflow = TextOverflow.Ellipsis ) }, colors = NavigationBarItemDefaults.colors( selectedIconColor = activeColor, selectedTextColor = activeColor, indicatorColor = activeContainerColor, unselectedIconColor = CampusQTextSecondary, unselectedTextColor = CampusQTextPrimary ) )`
+
+## Issue 9 @ CampusQNavigationWidgets.kt:L1 (C01-C22)
+* Error: Composable is partially hidden in layout because it is not contained within the bounds of its parent in 22 preview configurations.Fix this issue by adjusting the size or position of Composable.
+
+## Issue 10 @ CampusQNavigationWidgets.kt:L662
+* Error: Composable is partially hidden in layout because it is not contained within the bounds of its parent in a preview configuration.Fix this issue by adjusting the size or position of Composable.
+* Code: `Text(day, modifier = Modifier.weight(1f), textAlign = TextAlign.Center, style = MaterialTheme.typography.labelSmall)`
+
+## Issue 11 @ StudentAppointmentHistoryProfileScreens.kt:L380 (C10, C11, C13-C15)
+* Error: Color contrast check fails for Protanopes and 4 other colorblind configurations.The item's text contrast ratio is 3.82. This ratio is based on an estimated foreground color of #FFFFFF and an estimated background color of #81874C. Consider using colors that result in a contrast ratio greater than 4.50 for small text, or 3.00 for large text.
+* Code: `Text( text = stepNumber.toString(), style = MaterialTheme.typography.labelLarge.copy( color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold ) )`
+
+## Issue 12 @ CampusQNavigationWidgets.kt:L179 (C10-C13)
+* Error: Color contrast check fails for Protanopes and 3 other colorblind configurations.The item's text contrast ratio is 4.45. This ratio is based on an estimated foreground color of #66716B and an estimated background color of #EDF1EE. Consider using colors that result in a contrast ratio greater than 4.50 for small text, or 3.00 for large text.
+* Code: `NavigationBarItem( selected = selected, onClick = { onNavigate(dest.route) }, icon = { Icon( imageVector = dest.icon, contentDescription = dest.label, modifier = Modifier.size(22.dp) ) }, label = { Text( text = if (LocalDensity.current.fontScale > 1.3f) { when (dest.label) { "Appointments" -> "Appts"; "Dashboard" -> "Home"; else -> dest.label } } else dest.label, style = MaterialTheme.typography.labelSmall.copy( fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal ), maxLines = 1, overflow = TextOverflow.Ellipsis ) }, colors = NavigationBarItemDefaults.colors( selectedIconColor = activeColor, selectedTextColor = activeColor, indicatorColor = activeContainerColor, unselectedIconColor = CampusQTextSecondary, unselectedTextColor = CampusQTextPrimary ) )`
+
+## Issue 13 @ CampusQNavigationWidgets.kt:L1 (C10-C15)
+* Error: Color contrast check fails for Protanopes and 5 other colorblind configurations.The item's text contrast ratio is 1.58. This ratio is based on an estimated foreground color of #CBCECD and an estimated background color of #FFFFFF. Consider using colors that result in a contrast ratio greater than 4.50 for small text, or 3.00 for large text.
+---

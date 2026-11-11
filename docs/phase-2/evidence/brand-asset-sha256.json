@@ -1,0 +1,22 @@
+﻿[
+    {
+        "Asset":  "img_avatar_staff.png",
+        "SHA256":  "1EB94459DA4F4C9986E0AB5D301E43A7E2BA923267AEF18E66AD4A63CDA4AEF3"
+    },
+    {
+        "Asset":  "img_avatar_student.png",
+        "SHA256":  "D67EAB5E82C9381856432894F16412E7B4DE3DBB198DC45A0FFADF0EEC195EE3"
+    },
+    {
+        "Asset":  "img_campusq_icon.png",
+        "SHA256":  "A12C2A673440AFB690154F5135411F58556EEB989017ADC6A4F0A3AD8453042E"
+    },
+    {
+        "Asset":  "img_campus_building.png",
+        "SHA256":  "269832F0D0339008D0202D430413F1C125A665535B0CA3FF9A267444884F4982"
+    },
+    {
+        "Asset":  "img_campus_welcome_bg.png",
+        "SHA256":  "45ADD3A88D3F9EACC9DC0390504FF0419653B54322F089DB8F80FA9DB544DAAE"
+    }
+]

@@ -1,0 +1,38 @@
+# Local IDE/build output
+*.iml
+.gradle/
+.kotlin/
+.idea/
+**/build/
+captures/
+.externalNativeBuild/
+.cxx/
+local.properties
+.DS_Store
+.agents/
+.gemini/
+.codex/
+# Backend dependencies, emulator state and logs
+**/node_modules/
+.firebase/
+*-debug.log
+*-debug.*.log
+firebase-export-*/
+# Private/local project selection and app configuration
+.firebaserc
+**/google-services.json
+.env
+.env.*
+!.env.example
+*.jks
+*.keystore
+*.p12
+*.pem
+*service-account*.json
+*serviceAccount*.json
+*credentials*.json
+# Generated screenshot evidence remains local
+docs/phase-2/evidence/initial-captures/
+docs/phase-2/evidence/final-captures/
+docs/phase-2/evidence/results/
+docs/phase-3/evidence/
