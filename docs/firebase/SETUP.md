@@ -1,90 +1,112 @@
+# Latest approved Rules publication — 2026-11-12
+The approved deploy --only firestore:rules --project campusq-e06c7 completed successfully. A published cloud.firestore release now exists and its single-file source exactly matches the tested local firestore.rules. Actual unauthenticated read and guarded write both returned403 PERMISSION_DENIED. No document changes; billing remains disabled.
+Further deployments require separate authorization. Phase4 unstarted. Details/evidence in CAMPUSQ_PHASE_3_COMPLETION_REPORT.md.
+The following earlier setup snapshot is retained for context; its no-published-release/publication-not-authorized statements have been superseded by this specific approval and completed deployment.
+
+---
+
 # Firebase setup — CampusQ Phase 3
-Status: SDK foundation implemented; **no real Firebase project is connected**. Approved target: display name CampusQ, Android package com.example.campusq, Standard edition (default) database, asia-southeast1 Singapore. Billing must remain off. CLI has no authorized accounts; Firebase MCP/Developer Knowledge tools are not available in this session. Only cloud setup is blocked; local work proceeds as requested.
+Updated: 2026-11-12, Asia/Manila.
 
-## Unblock account/project setup
-Run these commands in Android Studio Terminal (PowerShell uses .cmd because .ps1 execution is restricted):
+## Actual cloud verification
+Firebase CLI authentication is available in this Android Studio environment. Read-only project and Android-app requests confirmed:
+- Project: CampusQ / campusq-e06c7, number 875570165692, ACTIVE.
+- Android package: com.example.campusq.
+- Firebase App ID: 1:875570165692:android:0252b7d559f6f9dd9f9db9.
+- app/google-services.json exists and is Git-ignored. A fresh server download matched its project number/ID, Android package/App ID and API-key value. No key values or account credentials are recorded.
+- The opt-in Google Services resource task and genuine-config APK build succeeded. Instrumentation confirmed default FirebaseApp initialization with those IDs, SSL cloud Firestore host and no signed-in user.
+- Approved API enablement succeeded: firestore.googleapis.com changed DISABLED → ENABLED, operation done=true, verified by a separate state GET.
+- The separately authorized (default) database was created on2026-11-12. Independent metadata confirms exactly one database: STANDARD, FIRESTORE_NATIVE, asia-southeast1, freeTier=true. Billing GET confirms billingEnabled=false and no billing account before/after creation.
+- Firebase Rules API was already enabled. The CLI-created database uses closed client access but publishes no Rules release: release list remains empty and cloud.firestore GET returns404. No custom Rules deployed; local deny-all rules remain unchanged.
+- Spark/free configuration is preserved: database freeTier=true, billingEnabled=false, empty billingAccountName. No billing upgrade occurred.
+
+Authorized cloud provisioning is limited to Firestore API enablement and exactly the default Standard Native Singapore database. No extra databases, custom Rules/index/function deployments, data/auth writes, callable requests, other API enablement or billing changes were performed. Existing local deny-all rules remain unchanged. Local tests do not establish deployed production rules.
+
+## Database creation and security status
+Completed preflight: project-scoped locations includes Singapore; Firebase resources.locationId was unset; no existing database; billing disabled/no billing account. The requested location was used without substitution.
+Creation succeeded with the Firebase CLI, --edition standard, --location asia-southeast1 and --point-in-time-recovery DISABLED. Native mode is the CLI create command's type. Post-creation GET confirms actual settings, freeTier=true and unchanged disabled billing.
+
+No published Rules release exists after CLI creation; default closed client access applies. Do not claim local firestore.rules is deployed. No custom rules may be published under the current authorization. If an explicit versioned deny-all release is desired, present the exact policy/release change and obtain separate approval.
+
+Safe metadata checks:
 ```powershell
-npx.cmd -y firebase-tools@latest login
-npx.cmd -y firebase-tools@latest login:list
+npx.cmd -y --package=node@24.22.3 --package=firebase-tools@latest -- firebase firestore:databases:list --project campusq-e06c7 --json
+npx.cmd -y --package=node@24.22.3 --package=firebase-tools@latest -- firebase firestore:databases:get "(default)" --project campusq-e06c7 --json
 ```
-Complete Google authorization locally; do not paste auth codes, refresh tokens, service-account keys or credentials into chat.
-Create a project in Firebase Console: Add project → name CampusQ → choose/record the actual globally unique Project ID → disable Google Analytics for now → create on Spark/free plan. Do not attach a billing account. If institution policy requires an organization administrator, request project creation/IAM from that administrator. Tell the agent the resulting Project ID; it must not guess one from the display name.
+Do not run database creation again. Do not add sample documents or deploy indexes/Functions. No Phase4 workflows are authorized.
 
-Alternatively, once an actual available Project ID has been selected, use:
-```powershell
-npx.cmd -y firebase-tools@latest projects:create YOUR_ACTUAL_PROJECT_ID --display-name CampusQ
-```
-Placeholders in this document are instructions, not configured values. No .firebaserc with invented remote aliases is included.
-
-## Provision the approved database and Android app
-After project authorization/ID is available:
-```powershell
-npx.cmd -y firebase-tools@latest firestore:databases:list --project YOUR_ACTUAL_PROJECT_ID
-npx.cmd -y firebase-tools@latest firestore:databases:create "(default)" --edition standard --location asia-southeast1 --project YOUR_ACTUAL_PROJECT_ID
-npx.cmd -y firebase-tools@latest firestore:databases:get "(default)" --project YOUR_ACTUAL_PROJECT_ID
-npx.cmd -y firebase-tools@latest apps:create ANDROID CampusQ --package-name com.example.campusq --project YOUR_ACTUAL_PROJECT_ID
-npx.cmd -y firebase-tools@latest apps:list ANDROID --project YOUR_ACTUAL_PROJECT_ID
-```
-If database creation via CLI asks for billing, **stop** and report the exact requirement; do not enable billing. Console alternative: Firestore → Create database → Standard → (default) → Singapore asia-southeast1 → production/locked rules. Do not choose test/open mode. Verify actual location/edition, not just these intended values.
-
-Retrieve the real Android configuration with CLI using the App ID returned above:
-```powershell
-npx.cmd -y firebase-tools@latest apps:sdkconfig ANDROID YOUR_ACTUAL_FIREBASE_APP_ID --project YOUR_ACTUAL_PROJECT_ID --out app/google-services.json
-```
-Ensure package_name is com.example.campusq and project_id is the intended real project. Keep this file local; .gitignore excludes it as requested. It contains app identifiers, not server authority; security still depends on Rules/IAM. Never place Admin SDK keys in Android.
-
-Review and deploy **only** the closed rules and proposed indexes once actual project/edition are verified:
-```powershell
-npx.cmd -y firebase-tools@latest deploy --only firestore:rules,firestore:indexes --project YOUR_ACTUAL_PROJECT_ID
-```
-No deployment has been performed in this phase. Do not deploy functions or enable billing. Cloud Functions production generally requires Blaze; approval is a separate decision. Leave sign-in provider/workflow implementation for Phase 4. No Auth provider was remotely enabled. FCM dependency is available, but token registration/notification permission/delivery are deferred.
-
-## Android opt-in
-Normal commands need no JSON and stay in Demo Mode:
+## Android opt-in and safe verification
+Normal builds require no private JSON and remain in Demo Mode:
 ```powershell
 .\gradlew.bat :app:assembleDebug :app:testDebugUnitTest :app:lintDebug
 ```
-With genuine app/google-services.json:
+Build with the real local config:
 ```powershell
-.\gradlew.bat '-Pcampusq.firebase.enabled=true' :app:assembleDebug
+.\gradlew.bat '-Pcampusq.firebase.enabled=true' :app:processDebugGoogleServices :app:assembleDebug :app:testDebugUnitTest :app:lintDebug --max-workers=2 --console=plain
 ```
-Missing config fails early with a clear message. This flag applies Google Services resource processing; it **does not switch the UI repository**. MainActivity/ViewModel still use DemoRepository. FirebaseBackend.fromConfiguration is explicit and unused by the app. Never infer “connected” from adding dependencies or generating resources; verify real project options and a controlled server request later. Closed rules must deny all access.
+The flag applies Google Services processing; it does not switch CampusQViewModel/DemoRepository or implement authentication. Default remains false so private config is optional for other developers. Missing config fails early when explicitly enabled. The main manifest disables FCM auto-init and Analytics collection.
 
-Versions: officially documented BoM 35.1.0 was tested but Auth 25.0.0 carries Kotlin 2.4 metadata incompatible with existing compiler 2.2. The compatible preceding BoM 34.19.0 is selected without skipping metadata checks or changing AGP/Kotlin. Main Firebase modules (no deprecated -ktx artifacts); Google Services 4.5.0. Final build evidence determines compatibility, not docs alone.
+FirebaseCloudVerificationTest has two independently reported cases:
+- configuredSdkMatchesRegisteredAndroidApp verifies package, default FirebaseApp, expected project/App IDs, cloud host, SSL and no existing signed-in user.
+- verifiedDatabaseDeniesUnauthenticatedServerRead additionally requires firebaseCloudDatabaseVerified=true. It performs a bounded Source.SERVER services query and expects PERMISSION_DENIED; explicit API-disabled messages fail. Supply this argument only after independently verifying real database metadata; that prerequisite is now satisfied. The current creation continuation runs it explicitly.
 
-## Local emulators (no account/billing required)
-Requirements: Node>=24.12 for rules-unit-testing6, Java 21+ for Firestore; available host Node 24.19.0/Java 25.0.2. Functions deployment runtime is Node 22 (supported); host emulator uses Node 24 and warns about mismatch. No production runtime certification claimed.
+SDK-only check (without database verification argument, the database test skips):
+```powershell
+.\gradlew.bat :app:connectedDebugAndroidTest '-Pcampusq.firebase.enabled=true' '-Pandroid.testInstrumentationRunnerArguments.class=com.example.campusq.FirebaseCloudVerificationTest' '-Pandroid.testInstrumentationRunnerArguments.firebaseCloudVerification=true' '-Pandroid.testInstrumentationRunnerArguments.firebaseCloudProjectId=campusq-e06c7' '-Pandroid.testInstrumentationRunnerArguments.firebaseCloudAppId=1:875570165692:android:0252b7d559f6f9dd9f9db9' --max-workers=2 --console=plain
+```
+These checks do not create users, write documents, invoke functions or request FCM tokens. A later successful denied read would validate only that unauthenticated restriction, not the complete deployed Rules policy.
+
+To redownload config if required, use Firebase Console → Project settings → Your apps → registered Android app → google-services.json. Place it at app/google-services.json. Do not create another app registration or overwrite with a different package/project. Keep private local configuration and Admin SDK credentials out of Git.
+
+To include the real server-denial test, add '-Pandroid.testInstrumentationRunnerArguments.firebaseCloudDatabaseVerified=true' to the device command above. It performs one unauthenticated Source.SERVER services query, expects PERMISSION_DENIED, and never writes. Actual post-creation result:2/2 passed,0 failures/errors/skips; BUILD SUCCESSFUL in1m43s on Pixel_7/API37. The Phase3 report retains the JUnit XML and limitations; a denied read alone is not an exhaustive role/write-policy audit.
+
+## Windows Node assertion
+Global Node24.19.0 reproduced a native Windows abort after apps:sdkconfig finished its output: UV_HANDLE_CLOSING in src/win/async.c, exit -1073740791 (0xC0000409). Other CLI metadata commands exited normally. This can make apparently successful output unreliable; always inspect the exit code and resulting config.
+
+An isolated Node24.22.3 invocation successfully retrieved and compared the same server config with exit0:
+```powershell
+npx.cmd -y --package=node@24.22.3 --package=firebase-tools@latest -- firebase --version
+```
+Use this wrapper in place of npx.cmd -y firebase-tools@latest for affected CLI commands. Global Node remains24.19.0; no global install or package-lock changes were made. This is a tested workaround, not proof of a unique root cause. The official Node24 changelog records a Windows libuv assertion fix in24.20.0; Firebase also has a matching Windows CLI issue:
+- [Node24 changelog](https://raw.githubusercontent.com/nodejs/node/main/doc/changelogs/CHANGELOG_V24.md)
+- [Windows assertion fix](https://github.com/nodejs/node/pull/61999)
+- [Firebase CLI issue](https://github.com/firebase/firebase-tools/issues/11099)
+
+## SDK compatibility and repository boundary
+Firebase BoM34.19.0 and Google Services4.5.0 compile with this project's existing Kotlin2.2 toolchain. The newer BoM35.1.0 was previously tested and rejected because Auth25.0.0 uses Kotlin2.4 metadata. No metadata-check suppression or unrelated toolchain upgrade was made. Main Firebase modules Auth/Firestore/Functions/Messaging are used, without deprecated -ktx modules.
+
+CampusQStateSource preserves the demo ViewModel boundary. ServiceCatalogRepository has demo and explicit one-shot Firebase adapters. FirebaseBackend.fromConfiguration is explicit and not selected by the UI. No authentication workflow, realtime queue or remote mutations are introduced.
+
+## Local emulators
+Node>=24.12 and Java21+ are needed locally. Functions deployment runtime is Node22; host Node24 produces an expected emulator runtime mismatch warning. No production function is deployed.
+
 ```powershell
 npm.cmd ci --ignore-scripts
 npm.cmd --prefix backend/functions ci --ignore-scripts
-$env:FUNCTIONS_DISCOVERY_TIMEOUT='60' # Allow cold local Functions discovery on this workstation.
+$env:FUNCTIONS_DISCOVERY_TIMEOUT='60'
 npm.cmd run test:rules
 npm.cmd run emulators
 ```
-All commands use explicit `demo-campusq-local`, a Firebase demo identifier that is **not** a provisioned project. Auth127.0.0.1:9099, Firestore127.0.0.1:8080, Functions127.0.0.1:5001. UI disabled; no emulator data import/export; shutdown destroys test fixtures. Functions exports an emulator-only rejecting probe and no production functions.
+All local commands explicitly target demo-campusq-local, never campusq-e06c7. Auth127.0.0.1:9099, Firestore127.0.0.1:8080 and Functions127.0.0.1:5001 use disposable fixtures. The Functions probe is exported only in its emulator and rejects protected operations.
 
-Android Studio AVD uses 10.0.2.2 to reach host ports. LocalFirebaseBackend exists in src/debug only; explicit named app, demo project, in-memory Firestore cache and emulator endpoints. Debug HTTP exception is limited to loopback/10.0.2.2; release has no emulator factory or cleartext exception. Do not use these endpoints on physical devices without a separately reviewed host/adb routing setup.
+LocalFirebaseBackend exists only in src/debug, uses a separate named app, demo project, in-memory cache and 10.0.2.2 on Android Studio AVD. Release has no emulator factory or debug HTTP exception. Genuine cloud SDK tests use the separate default Firebase app.
 
-For the combined backend and full Android verification (requires a booted AVD):
+Combined baseline suite, with booted AVD:
 ```powershell
 $env:FUNCTIONS_DISCOVERY_TIMEOUT='60'
 npm.cmd run test:all
 ```
-This runs 59 backend tests before invoking the Gradle build, local tests, lint and connected tests inside the same local emulator session. Windows runner uses an explicit Gradle wrapper path.
+This runs59 backend tests and then build, unit tests, lint and device tests. For genuine-config verification, use the same commands with the opt-in and cloud-test ID arguments above, and firebaseEmulators=true. Do not pass firebaseCloudDatabaseVerified=true without independently verified database metadata. Local emulator arguments alone never authorize real-cloud data writes.
 
-While all emulators run:
-```powershell
-.\gradlew.bat :app:connectedDebugAndroidTest '-Pandroid.testInstrumentationRunnerArguments.firebaseEmulators=true' --max-workers=2
-```
-Without that argument, the one emulator-specific Android check is skipped, not passed. Existing demo tests can run without Firebase emulators. The rules suite includes anonymous Auth smoke solely locally; it does not enable anonymous production auth.
+Locked JS dependencies retained. Root @grpc/grpc-js1.14.7 override addresses previously identified transitive advisories. CLI npx dependencies are separate and can emit their own deprecation notices. Re-run both npm audits after dependency changes; do not use audit fix --force.
 
-Reproducibility: package locks committed. @grpc/grpc-js override1.14.7 fixes two upstream advisories in the JS test SDK's pinned1.9.16 dependency. Re-run npm audits and all emulator tests after upgrades; never use audit fix --force to downgrade Firebase9. Both project package audits were clean after override. Firebase CLI itself comes from npx latest and has independent transient dependencies.
+Android callable/FCM delivery is still unverified. Earlier dummy local options could not satisfy non-emulated IID/FCM token prerequisites. Standard SDK component registration is preserved; Node tests verify the local Functions probe. No production callable or notification workflow exists to exercise in Phase3.
 
-## References checked
-- [Android setup and plugin](https://firebase.google.com/docs/android/setup)
-- [Android releases and BoM 34.19.0 mapping](https://firebase.google.com/support/release-notes/android)
-- [Local Emulator Suite](https://firebase.google.com/docs/emulator-suite/install_and_configure)
-- [Rules unit tests](https://firebase.google.com/docs/rules/unit-tests)
-- [Functions supported runtimes](https://firebase.google.com/docs/functions/manage-functions)
-
-Android callable limitation: the Functions SDK requires IID and attempts token acquisition from non-emulated FCM/Installations. With deliberately non-production local options, the call fails its API-key precondition. Removing IID registration also breaks Functions component dependencies, so standard SDK registration is retained. Android tests cover local Auth and Firestore; Node tests verify the Functions emulator probe. Android callable/FCM verification awaits genuine configuration and reviewed notification/consent behavior. No fake production key or substitute IID implementation is used.
+## Reference documents
+- [Schema](FIRESTORE_SCHEMA.md)
+- [Rules and intended permissions](SECURITY_RULES.md)
+- [Phase3 completion report](../../CAMPUSQ_PHASE_3_COMPLETION_REPORT.md)
+- [Official Android setup](https://firebase.google.com/docs/android/setup)
+- [Android SDK releases](https://firebase.google.com/support/release-notes/android)
+- [Emulator Suite](https://firebase.google.com/docs/emulator-suite/install_and_configure)
+- [Rules tests](https://firebase.google.com/docs/rules/unit-tests)

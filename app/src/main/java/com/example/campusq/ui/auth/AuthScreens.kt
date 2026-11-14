@@ -45,6 +45,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -59,12 +60,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.campusq.ui.navigation.LocalServerMode
 import com.example.campusq.R
 import com.example.campusq.ui.components.CampusQCard
 import com.example.campusq.ui.components.CampusQDemoLabel
@@ -171,7 +175,7 @@ fun SplashScreen(
                 modifier = Modifier.clickable(onClick = onNavigateToDemoHub)
             ) {
                 Text(
-                    text = "Tap to continue • UI Preview Mode",
+                    text = if (LocalServerMode.current) "Tap to sign in" else "Tap to continue • UI Preview Mode",
                     style = MaterialTheme.typography.bodySmall.copy(
                         color = Color.White,
                         fontWeight = FontWeight.SemiBold
@@ -193,17 +197,22 @@ fun LoginScreen(
     onNavigateToDemoHub: () -> Unit,
     onOpenStudentDemo: () -> Unit,
     onOpenStaffDemo: () -> Unit,
-    onOpenAdminDemo: () -> Unit
+    onOpenAdminDemo: () -> Unit,
+    modifier: Modifier = Modifier,
+    onLogin: ((String, String) -> Unit)? = null,
+    onPasswordRecovery: ((String) -> Unit)? = null,
+    isSubmitting: Boolean = false,
+    authenticationMessage: String? = null
 ) {
     var email by rememberSaveable { mutableStateOf("") }
-    var password by rememberSaveable { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
     var emailError by rememberSaveable { mutableStateOf<String?>(null) }
     var passwordError by rememberSaveable { mutableStateOf<String?>(null) }
     var showAuthNotConnectedDialog by rememberSaveable { mutableStateOf(false) }
     var showForgotPasswordDialog by rememberSaveable { mutableStateOf(false) }
 
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .background(CampusQSurface)
             .statusBarsPadding()
@@ -285,7 +294,12 @@ fun LoginScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End
             ) {
-                TextButton(onClick = { showForgotPasswordDialog = true }) {
+                TextButton(onClick = {
+                    password = ""
+                    if (onPasswordRecovery != null && !Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches()) {
+                        emailError = "Enter a valid school email address"
+                    } else showForgotPasswordDialog = true
+                }, enabled = !isSubmitting) {
                     Text(
                         text = "Forgot Password?",
                         style = MaterialTheme.typography.labelLarge.copy(
@@ -300,6 +314,7 @@ fun LoginScreen(
 
             CampusQPrimaryButton(
                 text = "Log In",
+                isLoading = isSubmitting,
                 onClick = {
                     var valid = true
                     if (email.isBlank() || !Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches()) {
@@ -311,11 +326,18 @@ fun LoginScreen(
                         valid = false
                     }
                     if (valid) {
-                        showAuthNotConnectedDialog = true
+                        if (onLogin == null) showAuthNotConnectedDialog = true
+                        else {
+                            onLogin(email.trim(), password)
+                            password = ""
+                        }
                     }
                 }
             )
 
+            authenticationMessage?.let {
+                Text(it, style = MaterialTheme.typography.bodySmall, color = CampusQTextPrimary)
+            }
             Spacer(modifier = Modifier.height(14.dp))
 
             Row(
@@ -331,7 +353,7 @@ fun LoginScreen(
                     style = MaterialTheme.typography.labelLarge.copy(color = CampusQGreenDark),
                     modifier = Modifier
                         .clip(RoundedCornerShape(4.dp))
-                        .clickable(onClick = onNavigateToRegister)
+                        .clickable { password = ""; onNavigateToRegister() }
                         .padding(4.dp)
                 )
             }
@@ -340,6 +362,7 @@ fun LoginScreen(
             HorizontalDivider(color = CampusQOutline)
             Spacer(modifier = Modifier.height(16.dp))
 
+            if (!LocalServerMode.current) {
             // Clearly separated Development UI Preview Card (Part 10 requirement)
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -369,7 +392,7 @@ fun LoginScreen(
                     }
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Authentication backend is not connected in this UI phase. Use Role Preview to inspect all 23 screens:",
+                        text = if (onLogin == null) "Authentication backend is not connected in this UI phase. Use Role Preview to inspect all 23 screens:" else stringResource(R.string.auth_demo_description),
                         style = MaterialTheme.typography.bodySmall,
                         textAlign = TextAlign.Center
                     )
@@ -410,7 +433,8 @@ fun LoginScreen(
                         )
                     }
                 }
-            }
+            }            }
+
         }
     }
 
@@ -446,16 +470,19 @@ fun LoginScreen(
     if (showForgotPasswordDialog) {
         AlertDialog(
             onDismissRequest = { showForgotPasswordDialog = false },
-            title = { Text("Password Recovery (UI Preview)", style = MaterialTheme.typography.titleLarge) },
+            title = { Text(if (onPasswordRecovery == null) "Password Recovery (UI Preview)" else stringResource(R.string.auth_recovery_title), style = MaterialTheme.typography.titleLarge) },
             text = {
                 Text(
-                    "Password reset emails require backend authentication integration. In production, a recovery link will be sent to your institutional email address.",
+                    if (LocalServerMode.current) stringResource(R.string.local_recovery_body) else if (onPasswordRecovery == null) "Password reset emails require backend authentication integration. In production, a recovery link will be sent to your institutional email address." else stringResource(R.string.auth_recovery_body),
                     style = MaterialTheme.typography.bodyMedium.copy(color = CampusQTextPrimary)
                 )
             },
             confirmButton = {
-                TextButton(onClick = { showForgotPasswordDialog = false }) {
-                    Text("Understood", color = CampusQGreenDark, fontWeight = FontWeight.Bold)
+                TextButton(onClick = {
+                    showForgotPasswordDialog = false
+                    onPasswordRecovery?.invoke(email.trim())
+                }, enabled = !isSubmitting) {
+                    Text(if (LocalServerMode.current) stringResource(R.string.local_recovery_action) else if (onPasswordRecovery == null) "Understood" else stringResource(R.string.auth_recovery_send), color = CampusQGreenDark, fontWeight = FontWeight.Bold)
                 }
             },
             containerColor = CampusQSurface
@@ -496,13 +523,17 @@ private fun RoleQuickChip(
 @Composable
 fun RegistrationScreen(
     onNavigateBackToLogin: () -> Unit,
-    onNavigateToDemoHub: () -> Unit
+    onNavigateToDemoHub: () -> Unit,
+    modifier: Modifier = Modifier,
+    onRegister: ((String, String, String, String) -> Unit)? = null,
+    isSubmitting: Boolean = false,
+    authenticationMessage: String? = null
 ) {
     var fullName by rememberSaveable { mutableStateOf("") }
     var studentId by rememberSaveable { mutableStateOf("") }
     var email by rememberSaveable { mutableStateOf("") }
-    var password by rememberSaveable { mutableStateOf("") }
-    var confirmPassword by rememberSaveable { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
 
     var fullNameError by rememberSaveable { mutableStateOf<String?>(null) }
     var studentIdError by rememberSaveable { mutableStateOf<String?>(null) }
@@ -519,7 +550,7 @@ fun RegistrationScreen(
         confirmPassword.isNotBlank()
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .background(CampusQSurface)
             .statusBarsPadding()
@@ -534,7 +565,7 @@ fun RegistrationScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = onNavigateBackToLogin) {
+            IconButton(onClick = { password = ""; confirmPassword = ""; onNavigateBackToLogin() }) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back to Login",
@@ -644,6 +675,7 @@ fun RegistrationScreen(
         CampusQPrimaryButton(
             text = "Register",
             enabled = isFormFilled,
+            isLoading = isSubmitting,
             onClick = {
                 var valid = true
                 if (fullName.trim().length < 3) {
@@ -667,11 +699,19 @@ fun RegistrationScreen(
                     valid = false
                 }
                 if (valid) {
-                    showDemoNoticeDialog = true
+                    if (onRegister == null) showDemoNoticeDialog = true
+                    else {
+                        onRegister(fullName.trim(), studentId.trim(), email.trim(), password)
+                        password = ""
+                        confirmPassword = ""
+                    }
                 }
             }
         )
 
+        authenticationMessage?.let {
+            Text(it, style = MaterialTheme.typography.bodySmall, color = CampusQTextPrimary)
+        }
         Spacer(modifier = Modifier.height(14.dp))
 
         Row(
@@ -687,7 +727,7 @@ fun RegistrationScreen(
                 style = MaterialTheme.typography.labelLarge.copy(color = CampusQGreenDark),
                 modifier = Modifier
                     .clip(RoundedCornerShape(4.dp))
-                    .clickable(onClick = onNavigateBackToLogin)
+                    .clickable { password = ""; confirmPassword = ""; onNavigateBackToLogin() }
                     .padding(4.dp)
             )
         }
@@ -939,5 +979,21 @@ private fun RolePreviewCard(
                 tint = accentColor
             )
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun LoginAuthPreview() {
+    com.example.campusq.ui.theme.CampusQTheme {
+        LoginScreen({}, {}, {}, {}, {})
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun RegistrationAuthPreview() {
+    com.example.campusq.ui.theme.CampusQTheme {
+        RegistrationScreen({}, {})
     }
 }

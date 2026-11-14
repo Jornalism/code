@@ -1,5 +1,6 @@
 package com.example.campusq.ui.admin
 
+import com.example.campusq.ui.navigation.LocalServerMode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -96,6 +97,7 @@ fun AdminQueueMonitoringScreen(
     onExitToPreviewHub: () -> Unit,
     onOpenTicketDetails: (String) -> Unit
 ) {
+    val isLocalServer = LocalServerMode.current
     var selectedTabIndex by rememberSaveable { mutableIntStateOf(0) }
     val tabs = listOf("All", "Waiting", "Called", "Serving", "Completed")
 
@@ -150,7 +152,7 @@ fun AdminQueueMonitoringScreen(
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "Demo Sync Active",
+                            text = (if (isLocalServer) "Server synchronization" else "Demo Sync Active"),
                             style = MaterialTheme.typography.labelSmall.copy(
                                 color = CampusQGreenDark,
                                 fontWeight = FontWeight.Bold
@@ -173,7 +175,7 @@ fun AdminQueueMonitoringScreen(
             if (filteredTickets.isEmpty()) {
                 CampusQEmptyState(
                     title = "No Tickets Found",
-                    message = "No demonstration queue records match the ${tabs[selectedTabIndex]} filter."
+                    message = (if (isLocalServer) "No queue records match the ${tabs[selectedTabIndex]} filter." else "No demonstration queue records match the ${tabs[selectedTabIndex]} filter.")
                 )
             } else {
                 LazyColumn(
@@ -247,6 +249,7 @@ fun AdminAppointmentManagementScreen(
     onNavigate: (String) -> Unit,
     onExitToPreviewHub: () -> Unit
 ) {
+    val isLocalServer = LocalServerMode.current
     var selectedTabIndex by rememberSaveable { mutableIntStateOf(0) }
     var selectedAppointment by remember { mutableStateOf<Appointment?>(null) }
 
@@ -285,7 +288,7 @@ fun AdminAppointmentManagementScreen(
             if (filteredAppointments.isEmpty()) {
                 CampusQEmptyState(
                     title = "No Appointments",
-                    message = "No demonstration appointments match the ${tabs[selectedTabIndex]} filter.",
+                    message = (if (isLocalServer) "No appointments match the ${tabs[selectedTabIndex]} filter." else "No demonstration appointments match the ${tabs[selectedTabIndex]} filter."),
                     icon = Icons.Default.CalendarMonth
                 )
             } else {
@@ -314,7 +317,7 @@ fun AdminAppointmentManagementScreen(
                     Text("Service: ${apt.serviceName}", style = MaterialTheme.typography.bodyMedium)
                     Text("Student: ${apt.studentName} (${apt.studentId})", style = MaterialTheme.typography.bodyMedium)
                     Text("Date & Time: ${apt.dateText} • ${apt.timeSlot}", style = MaterialTheme.typography.bodyMedium)
-                    Text("Status: ${apt.status.displayName} (Demo)", style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold))
+                    Text((if (isLocalServer) "Status: ${apt.status.displayName}" else "Status: ${apt.status.displayName} (Demo)"), style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold))
                 }
             },
             confirmButton = {
@@ -346,10 +349,11 @@ fun AdminReportsAnalyticsScreen(
     onNavigate: (String) -> Unit,
     onExitToPreviewHub: () -> Unit
 ) {
+    val isLocalServer = LocalServerMode.current
     val periods = listOf(
-        "This Week (Demo)",
-        "This Month (Demo)",
-        "Last Six Months (Demo)"
+        (if (isLocalServer) "Last 7 Days" else "This Week (Demo)"),
+        (if (isLocalServer) "Last 31 Days" else "This Month (Demo)"),
+        (if (isLocalServer) "Last 183 Days" else "Last Six Months (Demo)")
     )
     var selectedPeriodIndex by rememberSaveable { mutableIntStateOf(0) }
     var showPeriodDropdown by remember { mutableStateOf(false) }
@@ -393,7 +397,7 @@ fun AdminReportsAnalyticsScreen(
                             Spacer(modifier = Modifier.width(10.dp))
                             Column {
                                 Text(
-                                    text = "Reporting Period (Demo Fixture)",
+                                    text = (if (isLocalServer) "Reporting Period" else "Reporting Period (Demo Fixture)"),
                                     style = MaterialTheme.typography.labelSmall.copy(color = CampusQTextSecondary)
                                 )
                                 Text(
@@ -476,7 +480,7 @@ fun AdminReportsAnalyticsScreen(
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
-                                text = "Demo Trend",
+                                text = (if (isLocalServer) "Transaction Trend" else "Demo Trend"),
                                 style = MaterialTheme.typography.labelSmall.copy(
                                     color = CampusQGreenDark,
                                     fontWeight = FontWeight.Bold
@@ -499,7 +503,7 @@ fun AdminReportsAnalyticsScreen(
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                 )
                 Text(
-                    text = "Distribution across Registrar service categories (Demo)",
+                    text = (if (isLocalServer) "Distribution across Registrar service categories" else "Distribution across Registrar service categories (Demo)"),
                     style = MaterialTheme.typography.bodySmall
                 )
 
@@ -610,6 +614,7 @@ fun AdminSystemSettingsScreen(
     onNavigate: (String) -> Unit,
     onExitToPreviewHub: () -> Unit
 ) {
+    val isLocalServer = LocalServerMode.current
     var activeDialog by rememberSaveable { mutableStateOf<String?>(null) }
     var settingsError by rememberSaveable { mutableStateOf<String?>(null) }
     var instName by rememberSaveable(settings.institutionName) { mutableStateOf(settings.institutionName) }
@@ -678,8 +683,8 @@ fun AdminSystemSettingsScreen(
                 onClick = { activeDialog = "about" }
             )
             CampusQProfileMenuItem(
-                title = "Switch Role Preview",
-                subtitle = "Return to UI Preview Role Selector",
+                title = (if (isLocalServer) "Sign out" else "Switch Role Preview"),
+                subtitle = (if (isLocalServer) "Return to sign in" else "Return to UI Preview Role Selector"),
                 icon = Icons.Default.SwapHoriz,
                 accentColor = CampusQAdminPurple,
                 onClick = onExitToPreviewHub
@@ -691,7 +696,7 @@ fun AdminSystemSettingsScreen(
         "institution" -> {
             AlertDialog(
                 onDismissRequest = { activeDialog = null },
-                title = { Text("Institution Information (Demo)", style = MaterialTheme.typography.titleLarge) },
+                title = { Text((if (isLocalServer) "Institution Information" else "Institution Information (Demo)"), style = MaterialTheme.typography.titleLarge) },
                 text = {
                     Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                         settingsError?.let { Text(it, color = CampusQError) }
@@ -711,7 +716,7 @@ fun AdminSystemSettingsScreen(
                             }
                         }
                     ) {
-                        Text("Save Demo Setting", color = CampusQAdminPurple, fontWeight = FontWeight.Bold)
+                        Text((if (isLocalServer) "Save Setting" else "Save Demo Setting"), color = CampusQAdminPurple, fontWeight = FontWeight.Bold)
                     }
                 },
                 dismissButton = {
@@ -725,7 +730,7 @@ fun AdminSystemSettingsScreen(
         "schedule" -> {
             AlertDialog(
                 onDismissRequest = { activeDialog = null },
-                title = { Text("Operating Schedule (Demo)", style = MaterialTheme.typography.titleLarge) },
+                title = { Text((if (isLocalServer) "Operating Schedule" else "Operating Schedule (Demo)"), style = MaterialTheme.typography.titleLarge) },
                 text = {
                     Column {
                         CampusQTextField(
@@ -749,7 +754,7 @@ fun AdminSystemSettingsScreen(
                             }
                         }
                     ) {
-                        Text("Save Demo Schedule", color = CampusQAdminPurple, fontWeight = FontWeight.Bold)
+                        Text((if (isLocalServer) "Save Schedule" else "Save Demo Schedule"), color = CampusQAdminPurple, fontWeight = FontWeight.Bold)
                     }
                 },
                 dismissButton = {
@@ -763,17 +768,18 @@ fun AdminSystemSettingsScreen(
         "notifications" -> {
             AlertDialog(
                 onDismissRequest = { activeDialog = null },
-                title = { Text("Notification Settings (Demo)", style = MaterialTheme.typography.titleLarge) },
+                title = { Text((if (isLocalServer) "Notification Settings" else "Notification Settings (Demo)"), style = MaterialTheme.typography.titleLarge) },
                 text = {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Enable Queue Call Alerts", style = MaterialTheme.typography.bodyMedium)
+                        Text(if (isLocalServer) "Cloud push unavailable; in-app polling active" else "Enable Queue Call Alerts", style = MaterialTheme.typography.bodyMedium)
                         Switch(
                             checked = pushAlerts,
                             onCheckedChange = { pushAlerts = it },
+                            enabled = !isLocalServer,
                             colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = CampusQAdminPurple)
                         )
                     }
@@ -794,10 +800,10 @@ fun AdminSystemSettingsScreen(
         "security" -> {
             AlertDialog(
                 onDismissRequest = { activeDialog = null },
-                title = { Text("Account & Security (UI Preview)", style = MaterialTheme.typography.titleLarge) },
+                title = { Text((if (isLocalServer) "Account & Security (local server)" else "Account & Security (UI Preview)"), style = MaterialTheme.typography.titleLarge) },
                 text = {
                     Text(
-                        "Security policies, password changes, and role claims require backend Firebase Authentication integration. No real security credentials are modified in this UI prototype.",
+                        (if (isLocalServer) "Roles are enforced by the laptop server. Password recovery requires an authorized operator; no recovery email is sent." else "Security policies, password changes, and role claims require backend Firebase Authentication integration. No real security credentials are modified in this UI prototype."),
                         style = MaterialTheme.typography.bodyMedium.copy(color = CampusQTextPrimary)
                     )
                 },
@@ -812,10 +818,10 @@ fun AdminSystemSettingsScreen(
         "backup" -> {
             AlertDialog(
                 onDismissRequest = { activeDialog = null },
-                title = { Text("Backup & Data (UI Preview)", style = MaterialTheme.typography.titleLarge) },
+                title = { Text((if (isLocalServer) "Backup & Data (local server)" else "Backup & Data (UI Preview)"), style = MaterialTheme.typography.titleLarge) },
                 text = {
                     Text(
-                        "Cloud backups and database exports are not connected in this UI-only phase. All current data is stored in an in-memory demonstration repository.",
+                        (if (isLocalServer) "Data is stored in the laptop SQLite database. Ask the operator to use the documented Backup-CampusQ script. Cloud backup is not configured." else "Cloud backups and database exports are not connected in this UI-only phase. All current data is stored in an in-memory demonstration repository."),
                         style = MaterialTheme.typography.bodyMedium.copy(color = CampusQTextPrimary)
                     )
                 },
@@ -833,7 +839,7 @@ fun AdminSystemSettingsScreen(
                 title = { Text("About CampusQ", style = MaterialTheme.typography.titleLarge) },
                 text = {
                     Text(
-                        "CampusQ — Smart Queue & Appointment Management System\nOfficial Tagline: Queue smarter. Wait less.\n\nComplete 23-Screen Material Design 3 UI/UX Prototype for BSIT Capstone Project.",
+                        (if (isLocalServer) "CampusQ — Smart Queue & Appointment Management System\nOfficial Tagline: Queue smarter. Wait less.\n\nComplete 23-Screen Material Design 3 local-network application for BSIT Capstone Project." else "CampusQ — Smart Queue & Appointment Management System\nOfficial Tagline: Queue smarter. Wait less.\n\nComplete 23-Screen Material Design 3 UI/UX Prototype for BSIT Capstone Project."),
                         style = MaterialTheme.typography.bodyMedium.copy(color = CampusQTextPrimary)
                     )
                 },

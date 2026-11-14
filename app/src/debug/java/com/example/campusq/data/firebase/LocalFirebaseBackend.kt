@@ -13,12 +13,13 @@ import com.google.firebase.functions.FirebaseFunctions
 object LocalFirebaseBackend {
     const val PROJECT_ID = "demo-campusq-local"
 
-    fun create(context: Context): FirebaseBackend {
+    fun create(context: Context, instanceId: String = "campusq-local"): FirebaseBackend {
+        require(Regex("[A-Za-z0-9-]+").matches(instanceId))
         val app = FirebaseApp.initializeApp(context.applicationContext, FirebaseOptions.Builder()
             .setProjectId(PROJECT_ID)
             .setApplicationId("1:000000000000:android:local")
-            .setApiKey("local-emulator-only")
-            .build(), "campusq-local")
+            .setApiKey("local-emulator-only-$instanceId")
+            .build(), instanceId)
         val auth = FirebaseAuth.getInstance(app).also { it.useEmulator("10.0.2.2", 9099) }
         val firestore = FirebaseFirestore.getInstance(app).also {
             it.firestoreSettings = FirebaseFirestoreSettings.Builder()

@@ -38,3 +38,18 @@ docs/phase-2/evidence/results/
 docs/phase-3/evidence/
 docs/firebase/SECURITY_ANALYSIS.local.md
 *.local.json
+
+# Local Phase 4 verification artifacts
+docs/phase-4/evidence/
+
+# Private offline server data, TLS material and local acceptance evidence
+backend/local/data/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+*.sqlite-backup
+*.pfx
+docs/offline/evidence/
+
+# Ephemeral local integration credentials (test APK only; never commit)
+app/src/androidTest/assets/local-acceptance.json

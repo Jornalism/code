@@ -4,7 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.example.campusq.ui.navigation.CampusQApp
+import com.example.campusq.ui.navigation.CampusQLocalApp
 import com.example.campusq.ui.theme.CampusQTheme
 
 class MainActivity : ComponentActivity() {
@@ -13,7 +13,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             CampusQTheme {
-                CampusQApp()
+                CampusQLocalApp()
             }
         }
     }

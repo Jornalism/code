@@ -1,5 +1,6 @@
 package com.example.campusq.ui.staff
 
+import com.example.campusq.ui.navigation.LocalServerMode
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -83,6 +84,7 @@ fun StaffAppointmentManagementScreen(
     onNavigateBottom: (String) -> Unit,
     onUpdateAppointmentStatus: (String, AppointmentStatus) -> Unit
 ) {
+    val isLocalServer = LocalServerMode.current
     var selectedTabIndex by rememberSaveable { mutableIntStateOf(0) }
     var selectedAppointment by remember { mutableStateOf<Appointment?>(null) }
 
@@ -127,7 +129,7 @@ fun StaffAppointmentManagementScreen(
             if (filteredAppointments.isEmpty()) {
                 CampusQEmptyState(
                     title = "No ${tabs[selectedTabIndex]} Appointments",
-                    message = "No demonstration appointments match the selected filter.",
+                    message = (if (isLocalServer) "No appointments match the selected filter." else "No demonstration appointments match the selected filter."),
                     icon = Icons.Default.CalendarMonth
                 )
             } else {
@@ -172,7 +174,7 @@ fun StaffAppointmentManagementScreen(
                     Text("Student: ${apt.studentName} (${apt.studentId})", style = MaterialTheme.typography.bodyMedium)
                     Text("Schedule: ${apt.dateText} • ${apt.timeSlot}", style = MaterialTheme.typography.bodyMedium)
                     Text(
-                        text = "Current Status: ${apt.status.displayName} (Demo)",
+                        text = (if (isLocalServer) "Current Status: ${apt.status.displayName}" else "Current Status: ${apt.status.displayName} (Demo)"),
                         style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
                     )
                     Spacer(modifier = Modifier.height(6.dp))
@@ -217,6 +219,7 @@ fun StaffServiceStatusScreen(
     onNavigateBottom: (String) -> Unit,
     onOpenTicketDetails: (String) -> Unit
 ) {
+    val isLocalServer = LocalServerMode.current
     var selectedTabIndex by rememberSaveable { mutableIntStateOf(0) }
     val tabs = listOf("Ongoing", "Completed")
 
@@ -260,7 +263,7 @@ fun StaffServiceStatusScreen(
             if (filteredTickets.isEmpty()) {
                 CampusQEmptyState(
                     title = "No ${tabs[selectedTabIndex]} Records",
-                    message = "No demonstration service records found for this filter.",
+                    message = (if (isLocalServer) "No service records found for this filter." else "No demonstration service records found for this filter."),
                     icon = Icons.Default.CheckCircle
                 )
             } else {
@@ -323,6 +326,7 @@ fun StaffProfileScreen(
     onNavigateBottom: (String) -> Unit,
     onLogoutToPreviewHub: () -> Unit
 ) {
+    val isLocalServer = LocalServerMode.current
     var activeModal by rememberSaveable { mutableStateOf<String?>(null) }
     var showLogoutDialog by rememberSaveable { mutableStateOf(false) }
 
@@ -358,7 +362,7 @@ fun StaffProfileScreen(
 
             CampusQProfileMenuItem(
                 title = "Today's Schedule",
-                subtitle = "Mon – Fri • 8:00 AM – 5:00 PM (${staffProfile.counterName})",
+                subtitle = if (isLocalServer) staffProfile.counterName else "Mon – Fri • 8:00 AM – 5:00 PM (${staffProfile.counterName})",
                 icon = Icons.Default.Schedule,
                 onClick = { activeModal = "schedule" }
             )
@@ -381,14 +385,14 @@ fun StaffProfileScreen(
                 onClick = { activeModal = "help" }
             )
             CampusQProfileMenuItem(
-                title = "Switch Role Preview",
-                subtitle = "Switch between Student, Staff, and Admin UI",
+                title = (if (isLocalServer) "Sign out" else "Switch Role Preview"),
+                subtitle = (if (isLocalServer) "Sign out before using another account" else "Switch between Student, Staff, and Admin UI"),
                 icon = Icons.Default.SwapHoriz,
                 onClick = onLogoutToPreviewHub
             )
             CampusQProfileMenuItem(
                 title = "Logout",
-                subtitle = "Return to UI Preview / Login entry",
+                subtitle = (if (isLocalServer) "Return to sign in" else "Return to UI Preview / Login entry"),
                 icon = Icons.AutoMirrored.Filled.ExitToApp,
                 isDestructive = true,
                 onClick = { showLogoutDialog = true }
@@ -398,16 +402,16 @@ fun StaffProfileScreen(
 
     if (activeModal != null) {
         val (title, body) = when (activeModal) {
-            "schedule" -> "Today's Schedule (Demo)" to "Assigned Counter: ${staffProfile.counterName}\nShift Hours: 8:00 AM – 5:00 PM\nBreak Window: 12:00 PM – 1:00 PM"
-            "account" -> "Staff Account Settings (Demo)" to "Name: ${staffProfile.fullName}\nRole: ${staffProfile.roleTitle}\nEmail: ${staffProfile.email}\n\nNote: Staff account credentials are managed by the Registrar Administrator."
-            "notifications" -> "Staff Notification Alerts (Demo)" to "• New waiting ticket alert: Enabled\n• Appointment check-in alert: Enabled\n• Long wait threshold (>20 min): Enabled"
+            "schedule" -> (if (isLocalServer) "Today's Schedule" else "Today's Schedule (Demo)") to "Assigned Counter: ${staffProfile.counterName}\nShift Hours: 8:00 AM – 5:00 PM\nBreak Window: 12:00 PM – 1:00 PM"
+            "account" -> (if (isLocalServer) "Staff Account Settings" else "Staff Account Settings (Demo)") to "Name: ${staffProfile.fullName}\nRole: ${staffProfile.roleTitle}\nEmail: ${staffProfile.email}\n\nNote: Staff account credentials are managed by the Registrar Administrator."
+            "notifications" -> (if (isLocalServer) "Staff Notification Alerts" else "Staff Notification Alerts (Demo)") to "• New waiting ticket alert: Enabled\n• Appointment check-in alert: Enabled\n• Long wait threshold (>20 min): Enabled"
             else -> "Staff Help & Support" to "Use Queue Management to call the next waiting student, start service when they arrive at the window, and mark transactions completed."
         }
         AlertDialog(
             onDismissRequest = { activeModal = null },
             title = { Text(title, style = MaterialTheme.typography.titleLarge) },
             text = {
-                Text(body, style = MaterialTheme.typography.bodyMedium.copy(color = CampusQTextPrimary))
+                Text(if (isLocalServer && activeModal == "notifications") "Dashboards update while this app is open. Background push alerts and timed reminders are not configured." else if (isLocalServer && activeModal == "schedule") "Assigned counter: ${staffProfile.counterName}\nA staff shift schedule has not been configured." else body, style = MaterialTheme.typography.bodyMedium.copy(color = CampusQTextPrimary))
             },
             confirmButton = {
                 TextButton(onClick = { activeModal = null }) {
@@ -420,9 +424,9 @@ fun StaffProfileScreen(
 
     if (showLogoutDialog) {
         CampusQConfirmationDialog(
-            title = "Exit Staff Demo?",
-            message = "Return to the CampusQ UI Preview / Login screen?",
-            confirmText = "Exit Demo",
+            title = (if (isLocalServer) "Sign out?" else "Exit Staff Demo?"),
+            message = (if (isLocalServer) "Return to sign in" else "Return to the CampusQ UI Preview / Login screen?"),
+            confirmText = (if (isLocalServer) "Sign out" else "Exit Demo"),
             isDestructive = true,
             onConfirm = {
                 showLogoutDialog = false

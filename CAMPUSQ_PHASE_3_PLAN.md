@@ -1,3 +1,6 @@
+## Latest Rules publication — 2026-11-12
+Approved Rules-only deploy completed; exact source equality and actual unauthenticated read/guarded-write denials verified. Billing disabled; no other resources deployed. Earlier no-release observations below are historical. Phase4 unstarted.
+
 # CampusQ Phase 3 — Firebase foundation plan
 Date: 2026-11-11, Asia/Manila.
 
@@ -13,14 +16,21 @@ Scope: preserve all 23 screens, demo hub, five PNG assets and DemoRepository. No
 - [x] Add shared demo-state and asynchronous service-catalog interfaces/adapters. MainActivity/UI/demo commands remain local.
 - [x] Gradle Sync successful; debug APK built;33 JVM tests pass; lint 0 errors/20 warnings. npm audits0 vulnerabilities.
 - [x] Final combined run: 59 backend tests and 63 connected tests passed; no device failures/skips; debug build, 33 local tests and lint pass.
-- [ ] Real Firebase provisioning/connection blocked by account authorization and missing actual Project/App IDs/config.
+- [x] 2026-11-12: authenticated CLI confirms campusq-e06c7 and registered Android app; genuine JSON matches server configuration; opt-in build and device SDK initialization verified.
+- [x] Explicitly approved Firestore API enablement: single-service operation succeeded; independent state GET confirms ENABLED.
+- [x] Historical API-only pre-creation metadata: empty database/Rules-release lists and404 default lookups. Database absence was superseded by the separately authorized creation below.
+- [x] Separately authorized default database creation: preflight Singapore available/default resource location unset/billing disabled; create exact Standard Native Singapore(default); independent post-create metadata freeTier=true, billing still disabled.
+- [x] Targeted Android cloud verification:2/2 passed, no skips; registered SDK IDs and real unauthenticated server-read denial.
+- [x] Explicitly approved Rules-only publication: release cloud.firestore/ruleset a42e813a-233e-4ca2-969b-6592ec55c483 verified; exact tested-source match; unauthenticated read/guarded write denied403; no documents changed.
 - [x] Completion report/progress/evidence updated with actual outcomes and remaining blockers.
 
-## Approved cloud target and blocker
-User authorized a new project named CampusQ, Android com.example.campusq, Standard edition(default), asia-southeast1 Singapore. No billing or paid services approved. CLI reports no authorized accounts; no project created, remote rules/indexes deployed or provider enabled.
-Run npx.cmd -y firebase-tools@latest login locally, then choose/create an actual available Project ID on Spark. Exact Console/CLI setup in docs/firebase/SETUP.md. Do not invent configuration values. Local demo-campusq-local is emulator-only.
+## Verified cloud target and remaining scope
+CampusQ / campusq-e06c7, Android com.example.campusq, App ID1:875570165692:android:0252b7d559f6f9dd9f9db9 verified. Genuine app/google-services.json is ignored and server-matched.
+Firestore API enabled under prior approval. New creation approval fulfilled: exactly(default),STANDARD,FIRESTORE_NATIVE,asia-southeast1,freeTier=true. Singapore was available and default resource location unset before creation. Billing GET before/after confirms billingEnabled=false/no billing account. No upgrade.
+SDK initialization and real unauthenticated server-read denial passed2/2 device tests with no skips. No published Rules release exists after CLI creation; no custom policy/index/function deployed. Any explicit deployment requires separate authorization. Local demo-campusq-local remains emulator-only.
+See docs/firebase/SETUP.md and the current completion report.
 
 ## Security and acceptance boundary
-All Firestore client reads/writes denied, even trusted-looking custom claims. Later validators/role policies/server transactions are planned, not implemented. Server SDK bypasses rules and needs independent authorization.
-Local foundation acceptance: build and meaningful tests pass, Demo Mode retained, all unavailable external checks stated. Full real-project acceptance cannot be claimed until genuine setup and remote verification complete. Phase 2 accessibility/device matrix remains open.
+Local prototype rules deny all client operations and remain unchanged. Real database retains CLI default closed access with no published Rules release. Actual unauthenticated server-read denial is verified; no write probe or exhaustive role-policy audit was performed. Later validators/role policies/server transactions are planned, not implemented. Server SDK bypasses rules and needs independent authorization.
+Local foundation acceptance: build and meaningful tests pass, Demo Mode retained, all unavailable external checks stated. Database configuration/SDK/read-only connection foundation is verified; explicit versioned Rules-source certification remains unavailable until an approved deployment. No broader production security certification is claimed. Phase 2 accessibility/device matrix remains open.
 Stop after Phase 3; Phase 4 requires explicit authorization.

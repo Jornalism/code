@@ -1,5 +1,6 @@
 package com.example.campusq.ui.navigation
 
+import com.example.campusq.data.model.UserRole
 import android.app.Activity
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.platform.LocalView
@@ -21,7 +22,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -73,12 +73,28 @@ private fun NavHostController.navigateSingleTopTo(route: String) {
 }
 
 @Composable
-fun CampusQApp(
-    viewModel: CampusQViewModel = viewModel()
+fun CampusQWorkflowApp(
+    viewModel: CampusQViewModel,
+    modifier: Modifier = Modifier,
+    startRoute: String = CampusQRoutes.SPLASH,
+    onReturnToAuthentication: (() -> Unit)? = null,
+    liveRole: UserRole? = null
 ) {
     val navController = rememberNavController()
+    fun openRoute(route: String) {
+        if (liveRole != null && route == CampusQRoutes.DEMO_PREVIEW_HUB) {
+            onReturnToAuthentication?.invoke()
+        } else if (liveRole == null || localRoleCanOpen(liveRole, route)) {
+            navController.navigateSingleTopTo(route)
+        } else viewModel.showMessage("This route is not available for your account.")
+    }
+    LaunchedEffect(viewModel) { viewModel.navigationEvents.collect { openRoute(it) } }
     val entry by navController.currentBackStackEntryAsState()
     val currentRoute = entry?.destination?.route.orEmpty()
+    if (liveRole != null && currentRoute.isNotEmpty() && !localRoleCanOpen(liveRole, currentRoute)) {
+        LaunchedEffect(currentRoute) { openRoute(startRoute) }
+        return
+    }
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
@@ -92,7 +108,7 @@ fun CampusQApp(
     }
     val roleHome = CampusQRoutes.roleHome(currentRoute)
     BackHandler(enabled = currentRoute in CampusQRoutes.roleTabs && currentRoute != roleHome) {
-        roleHome?.let { navController.navigateSingleTopTo(it) }
+        roleHome?.let { openRoute(it) }
     }
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -102,6 +118,8 @@ fun CampusQApp(
     val staffMembers by viewModel.staffMembers.collectAsState()
     val queueTickets by viewModel.queueTickets.collectAsState()
     val studentTicketId by viewModel.studentTicketId.collectAsState()
+    val nowServing by viewModel.nowServing.collectAsState()
+    val reservedSlots by viewModel.reservedSlots.collectAsState()
     val appointments by viewModel.appointments.collectAsState()
     val transactions by viewModel.transactions.collectAsState()
     val notifications by viewModel.notifications.collectAsState()
@@ -118,14 +136,14 @@ fun CampusQApp(
     }
 
     val activeStudentTicket = queueTickets.find { it.id == studentTicketId && it.status.isActive }
-    val currentlyServingTicketNumber = queueTickets.firstOrNull {
+    val currentlyServingTicketNumber = if (liveRole == UserRole.STUDENT) nowServing[activeStudentTicket?.serviceId] ?: "—" else queueTickets.firstOrNull {
         it.status == QueueStatus.SERVING
-    }?.ticketNumber ?: "R-000"
+    }?.ticketNumber ?: if (liveRole == null) "R-000" else "—"
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = modifier.fillMaxSize()) {
         NavHost(
             navController = navController,
-            startDestination = CampusQRoutes.SPLASH
+            startDestination = startRoute
         ) {
             // SCREEN 01 — SPLASH SCREEN
             composable(CampusQRoutes.SPLASH) {
@@ -149,19 +167,19 @@ fun CampusQApp(
             composable(CampusQRoutes.LOGIN) {
                 LoginScreen(
                     onNavigateToRegister = {
-                        navController.navigateSingleTopTo(CampusQRoutes.REGISTER)
+                        openRoute(CampusQRoutes.REGISTER)
                     },
                     onNavigateToDemoHub = {
-                        navController.navigateSingleTopTo(CampusQRoutes.DEMO_PREVIEW_HUB)
+                        openRoute(CampusQRoutes.DEMO_PREVIEW_HUB)
                     },
                     onOpenStudentDemo = {
-                        navController.navigateSingleTopTo(CampusQRoutes.STUDENT_HOME)
+                        openRoute(CampusQRoutes.STUDENT_HOME)
                     },
                     onOpenStaffDemo = {
-                        navController.navigateSingleTopTo(CampusQRoutes.STAFF_DASHBOARD)
+                        openRoute(CampusQRoutes.STAFF_DASHBOARD)
                     },
                     onOpenAdminDemo = {
-                        navController.navigateSingleTopTo(CampusQRoutes.ADMIN_DASHBOARD)
+                        openRoute(CampusQRoutes.ADMIN_DASHBOARD)
                     }
                 )
             }
@@ -173,7 +191,7 @@ fun CampusQApp(
                         navController.popBackStack()
                     },
                     onNavigateToDemoHub = {
-                        navController.navigateSingleTopTo(CampusQRoutes.DEMO_PREVIEW_HUB)
+                        openRoute(CampusQRoutes.DEMO_PREVIEW_HUB)
                     }
                 )
             }
@@ -181,12 +199,12 @@ fun CampusQApp(
             // DEMO ROLE PREVIEW HUB
             composable(CampusQRoutes.DEMO_PREVIEW_HUB) {
                 DemoRolePreviewHubScreen(
-                    onOpenStudent = { navController.navigateSingleTopTo(CampusQRoutes.STUDENT_HOME) },
-                    onOpenStaff = { navController.navigateSingleTopTo(CampusQRoutes.STAFF_DASHBOARD) },
-                    onOpenAdmin = { navController.navigateSingleTopTo(CampusQRoutes.ADMIN_DASHBOARD) },
-                    onNavigateToSplash = { navController.navigateSingleTopTo(CampusQRoutes.SPLASH) },
-                    onNavigateToLogin = { navController.navigateSingleTopTo(CampusQRoutes.LOGIN) },
-                    onNavigateToRegister = { navController.navigateSingleTopTo(CampusQRoutes.REGISTER) }
+                    onOpenStudent = { openRoute(CampusQRoutes.STUDENT_HOME) },
+                    onOpenStaff = { openRoute(CampusQRoutes.STAFF_DASHBOARD) },
+                    onOpenAdmin = { openRoute(CampusQRoutes.ADMIN_DASHBOARD) },
+                    onNavigateToSplash = { openRoute(CampusQRoutes.SPLASH) },
+                    onNavigateToLogin = { onReturnToAuthentication?.invoke() ?: openRoute(CampusQRoutes.LOGIN) },
+                    onNavigateToRegister = { openRoute(CampusQRoutes.REGISTER) }
                 )
             }
 
@@ -196,17 +214,17 @@ fun CampusQApp(
                     studentProfile = studentProfile,
                     activeTicket = activeStudentTicket,
                     notifications = notifications,
-                    onNavigateBottom = { route -> navController.navigateSingleTopTo(route) },
-                    onOpenServices = { navController.navigateSingleTopTo(CampusQRoutes.STUDENT_SERVICES) },
+                    onNavigateBottom = { route -> openRoute(route) },
+                    onOpenServices = { openRoute(CampusQRoutes.STUDENT_SERVICES) },
                     onOpenBookAppointment = {
                         viewModel.selectServiceForBooking(null)
-                        navController.navigateSingleTopTo(CampusQRoutes.STUDENT_BOOK_APPOINTMENT)
+                        openRoute(CampusQRoutes.STUDENT_BOOK_APPOINTMENT)
                     },
-                    onOpenQueueStatus = { navController.navigateSingleTopTo(CampusQRoutes.STUDENT_QUEUE_STATUS) },
-                    onOpenHistory = { navController.navigateSingleTopTo(CampusQRoutes.STUDENT_HISTORY) },
+                    onOpenQueueStatus = { openRoute(CampusQRoutes.STUDENT_QUEUE_STATUS) },
+                    onOpenHistory = { openRoute(CampusQRoutes.STUDENT_HISTORY) },
                     onMarkNotificationsRead = { viewModel.markAllNotificationsRead() },
                     onRestoreSampleTicket = { viewModel.restoreDemoTicketR001() },
-                    onSwitchRolePreview = { navController.navigateSingleTopTo(CampusQRoutes.DEMO_PREVIEW_HUB) }
+                    onSwitchRolePreview = { openRoute(CampusQRoutes.DEMO_PREVIEW_HUB) }
                 )
             }
 
@@ -217,12 +235,12 @@ fun CampusQApp(
                     onBackClick = { navController.popBackStack() },
                     onJoinQueueForService = { service ->
                         if (viewModel.joinQueue(service) != null) {
-                            navController.navigateSingleTopTo(CampusQRoutes.STUDENT_QUEUE_STATUS)
+                            openRoute(CampusQRoutes.STUDENT_QUEUE_STATUS)
                         }
                     },
                     onBookAppointmentForService = { service ->
                         viewModel.selectServiceForBooking(service)
-                        navController.navigateSingleTopTo(CampusQRoutes.STUDENT_BOOK_APPOINTMENT)
+                        openRoute(CampusQRoutes.STUDENT_BOOK_APPOINTMENT)
                     }
                 )
             }
@@ -232,9 +250,9 @@ fun CampusQApp(
                 QueueStatusScreen(
                     activeTicket = activeStudentTicket,
                     currentlyServingTicketNumber = currentlyServingTicketNumber,
-                    onNavigateBottom = { route -> navController.navigateSingleTopTo(route) },
+                    onNavigateBottom = { route -> openRoute(route) },
                     onCancelTicket = { ticketId -> viewModel.cancelStudentTicket(ticketId) },
-                    onJoinNewQueue = { navController.navigateSingleTopTo(CampusQRoutes.STUDENT_SERVICES) },
+                    onJoinNewQueue = { openRoute(CampusQRoutes.STUDENT_SERVICES) },
                     onRestoreSampleTicket = { viewModel.restoreDemoTicketR001() }
                 )
             }
@@ -245,12 +263,13 @@ fun CampusQApp(
                     services = services,
                     preselectedService = selectedServiceForBooking,
                     appointments = appointments.filter { it.studentId == studentProfile.studentId },
+                    reservedSlots = reservedSlots,
                     onCancelAppointment = viewModel::cancelAppointment,
                     onRescheduleAppointment = viewModel::rescheduleAppointment,
-                    onNavigateBottom = { route -> navController.navigateSingleTopTo(route) },
+                    onNavigateBottom = { route -> openRoute(route) },
                     onConfirmBooking = { service, dateText, timeSlot ->
                         if (viewModel.bookAppointment(service, dateText, timeSlot) != null) {
-                            navController.navigateSingleTopTo(CampusQRoutes.STUDENT_HISTORY)
+                            openRoute(CampusQRoutes.STUDENT_HISTORY)
                         }
                     }
                 )
@@ -260,7 +279,7 @@ fun CampusQApp(
             composable(CampusQRoutes.STUDENT_HISTORY) {
                 TransactionHistoryScreen(
                     transactions = transactions.filter { it.ownerId == studentProfile.id },
-                    onNavigateBottom = { route -> navController.navigateSingleTopTo(route) }
+                    onNavigateBottom = { route -> openRoute(route) }
                 )
             }
 
@@ -268,12 +287,12 @@ fun CampusQApp(
             composable(CampusQRoutes.STUDENT_PROFILE) {
                 StudentProfileScreen(
                     studentProfile = studentProfile,
-                    onNavigateBottom = { route -> navController.navigateSingleTopTo(route) },
+                    onNavigateBottom = { route -> openRoute(route) },
                     onUpdateProfile = { name, id, email ->
                         viewModel.updateStudentProfile(name, id, email)
                     },
                     onLogoutToPreviewHub = {
-                        navController.navigateSingleTopTo(CampusQRoutes.DEMO_PREVIEW_HUB)
+                        openRoute(CampusQRoutes.DEMO_PREVIEW_HUB)
                     }
                 )
             }
@@ -285,15 +304,15 @@ fun CampusQApp(
                     counterName = currentStaffProfile.counterName,
                     tickets = queueTickets,
                     transactions = transactions,
-                    onNavigateBottom = { route -> navController.navigateSingleTopTo(route) },
+                    onNavigateBottom = { route -> openRoute(route) },
                     onCallNext = { viewModel.callNextWaitingTicket() },
-                    onOpenQueueManagement = { navController.navigateSingleTopTo(CampusQRoutes.STAFF_QUEUE_MANAGEMENT) },
-                    onOpenAppointments = { navController.navigateSingleTopTo(CampusQRoutes.STAFF_APPOINTMENTS) },
-                    onOpenServiceStatus = { navController.navigateSingleTopTo(CampusQRoutes.STAFF_SERVICE_STATUS) },
+                    onOpenQueueManagement = { openRoute(CampusQRoutes.STAFF_QUEUE_MANAGEMENT) },
+                    onOpenAppointments = { openRoute(CampusQRoutes.STAFF_APPOINTMENTS) },
+                    onOpenServiceStatus = { openRoute(CampusQRoutes.STAFF_SERVICE_STATUS) },
                     onOpenTicketDetails = { ticketId ->
-                        navController.navigateSingleTopTo(CampusQRoutes.staffTicketDetailsRoute(ticketId))
+                        openRoute(CampusQRoutes.staffTicketDetailsRoute(ticketId))
                     },
-                    onSwitchRolePreview = { navController.navigateSingleTopTo(CampusQRoutes.DEMO_PREVIEW_HUB) }
+                    onSwitchRolePreview = { openRoute(CampusQRoutes.DEMO_PREVIEW_HUB) }
                 )
             }
 
@@ -301,9 +320,9 @@ fun CampusQApp(
             composable(CampusQRoutes.STAFF_QUEUE_MANAGEMENT) {
                 StaffQueueManagementScreen(
                     tickets = queueTickets,
-                    onNavigateBottom = { route -> navController.navigateSingleTopTo(route) },
+                    onNavigateBottom = { route -> openRoute(route) },
                     onOpenTicketDetails = { ticketId ->
-                        navController.navigateSingleTopTo(CampusQRoutes.staffTicketDetailsRoute(ticketId))
+                        openRoute(CampusQRoutes.staffTicketDetailsRoute(ticketId))
                     },
                     onCallTicket = { ticket ->
                         viewModel.updateTicketStatus(ticket.id, QueueStatus.CALLED)
@@ -325,7 +344,7 @@ fun CampusQApp(
                         viewModel.updateTicketStatus(id, newStatus)
                     },
                     onNavigateToServiceInProgress = { id ->
-                        navController.navigateSingleTopTo(CampusQRoutes.staffServiceInProgressRoute(id))
+                        if (liveRole == null || queueTickets.any { it.id == id && it.status == QueueStatus.SERVING }) openRoute(CampusQRoutes.staffServiceInProgressRoute(id))
                     }
                 )
             }
@@ -342,8 +361,9 @@ fun CampusQApp(
                     counterName = "${currentStaffProfile.counterName} (Registrar)",
                     onBackClick = { navController.popBackStack() },
                     onCompleteService = { id ->
-                        viewModel.updateTicketStatus(id, QueueStatus.COMPLETED)
-                        navController.navigateSingleTopTo(CampusQRoutes.STAFF_SERVICE_STATUS)
+                        val destination = if (liveRole == UserRole.ADMIN) CampusQRoutes.ADMIN_QUEUE_MONITORING else CampusQRoutes.STAFF_SERVICE_STATUS
+                        viewModel.updateTicketStatus(id, QueueStatus.COMPLETED, if (liveRole != null) destination else null)
+                        if (liveRole == null) openRoute(destination)
                     },
                     onMarkNoShowOrCancel = { id ->
                         viewModel.updateTicketStatus(id, QueueStatus.NO_SHOW)
@@ -356,7 +376,7 @@ fun CampusQApp(
             composable(CampusQRoutes.STAFF_APPOINTMENTS) {
                 StaffAppointmentManagementScreen(
                     appointments = appointments,
-                    onNavigateBottom = { route -> navController.navigateSingleTopTo(route) },
+                    onNavigateBottom = { route -> openRoute(route) },
                     onUpdateAppointmentStatus = { id, status ->
                         viewModel.updateAppointmentStatus(id, status)
                     }
@@ -367,9 +387,9 @@ fun CampusQApp(
             composable(CampusQRoutes.STAFF_SERVICE_STATUS) {
                 StaffServiceStatusScreen(
                     tickets = queueTickets,
-                    onNavigateBottom = { route -> navController.navigateSingleTopTo(route) },
+                    onNavigateBottom = { route -> openRoute(route) },
                     onOpenTicketDetails = { ticketId ->
-                        navController.navigateSingleTopTo(CampusQRoutes.staffTicketDetailsRoute(ticketId))
+                        openRoute(CampusQRoutes.staffTicketDetailsRoute(ticketId))
                     }
                 )
             }
@@ -378,9 +398,9 @@ fun CampusQApp(
             composable(CampusQRoutes.STAFF_PROFILE) {
                 StaffProfileScreen(
                     staffProfile = currentStaffProfile,
-                    onNavigateBottom = { route -> navController.navigateSingleTopTo(route) },
+                    onNavigateBottom = { route -> openRoute(route) },
                     onLogoutToPreviewHub = {
-                        navController.navigateSingleTopTo(CampusQRoutes.DEMO_PREVIEW_HUB)
+                        openRoute(CampusQRoutes.DEMO_PREVIEW_HUB)
                     }
                 )
             }
@@ -393,8 +413,8 @@ fun CampusQApp(
                     staffMembers = staffMembers,
                     tickets = queueTickets,
                     transactions = transactions,
-                    onNavigate = { route -> navController.navigateSingleTopTo(route) },
-                    onExitToPreviewHub = { navController.navigateSingleTopTo(CampusQRoutes.DEMO_PREVIEW_HUB) }
+                    onNavigate = { route -> openRoute(route) },
+                    onExitToPreviewHub = { openRoute(CampusQRoutes.DEMO_PREVIEW_HUB) }
                 )
             }
 
@@ -402,12 +422,13 @@ fun CampusQApp(
             composable(CampusQRoutes.ADMIN_MANAGE_SERVICES) {
                 AdminManageServicesScreen(
                     services = services,
-                    onNavigate = { route -> navController.navigateSingleTopTo(route) },
-                    onExitToPreviewHub = { navController.navigateSingleTopTo(CampusQRoutes.DEMO_PREVIEW_HUB) },
+                    onNavigate = { route -> openRoute(route) },
+                    onExitToPreviewHub = { openRoute(CampusQRoutes.DEMO_PREVIEW_HUB) },
                     onSaveService = { id, name, desc, reqs, icon, avail, queue, apt, mins ->
                         viewModel.saveService(id, name, desc, reqs, icon, avail, queue, apt, mins)
                     },
-                    onToggleServiceAvailability = { id -> viewModel.toggleServiceAvailability(id) }
+                    onToggleServiceAvailability = { id -> viewModel.toggleServiceAvailability(id) },
+                    onDeleteService = viewModel::deleteUnusedService
                 )
             }
 
@@ -415,12 +436,13 @@ fun CampusQApp(
             composable(CampusQRoutes.ADMIN_STAFF_MANAGEMENT) {
                 AdminStaffManagementScreen(
                     staffMembers = staffMembers,
-                    onNavigate = { route -> navController.navigateSingleTopTo(route) },
-                    onExitToPreviewHub = { navController.navigateSingleTopTo(CampusQRoutes.DEMO_PREVIEW_HUB) },
+                    onNavigate = { route -> openRoute(route) },
+                    onExitToPreviewHub = { openRoute(CampusQRoutes.DEMO_PREVIEW_HUB) },
                     onSaveStaff = { id, name, email, counter, active ->
                         viewModel.saveStaffMember(id, name, email, counter, active)
                     },
-                    onToggleStaffActive = { id -> viewModel.toggleStaffActive(id) }
+                    onToggleStaffActive = { id -> viewModel.toggleStaffActive(id) },
+                    onCreateStaff = { name, email, counter, active, password -> viewModel.saveStaffMember(null, name, email, counter, active, password) }
                 )
             }
 
@@ -428,10 +450,10 @@ fun CampusQApp(
             composable(CampusQRoutes.ADMIN_QUEUE_MONITORING) {
                 AdminQueueMonitoringScreen(
                     tickets = queueTickets,
-                    onNavigate = { route -> navController.navigateSingleTopTo(route) },
-                    onExitToPreviewHub = { navController.navigateSingleTopTo(CampusQRoutes.DEMO_PREVIEW_HUB) },
+                    onNavigate = { route -> openRoute(route) },
+                    onExitToPreviewHub = { openRoute(CampusQRoutes.DEMO_PREVIEW_HUB) },
                     onOpenTicketDetails = { ticketId ->
-                        navController.navigateSingleTopTo(CampusQRoutes.staffTicketDetailsRoute(ticketId))
+                        openRoute(CampusQRoutes.staffTicketDetailsRoute(ticketId))
                     }
                 )
             }
@@ -440,8 +462,8 @@ fun CampusQApp(
             composable(CampusQRoutes.ADMIN_APPOINTMENTS) {
                 AdminAppointmentManagementScreen(
                     appointments = appointments,
-                    onNavigate = { route -> navController.navigateSingleTopTo(route) },
-                    onExitToPreviewHub = { navController.navigateSingleTopTo(CampusQRoutes.DEMO_PREVIEW_HUB) }
+                    onNavigate = { route -> openRoute(route) },
+                    onExitToPreviewHub = { openRoute(CampusQRoutes.DEMO_PREVIEW_HUB) }
                 )
             }
 
@@ -449,8 +471,8 @@ fun CampusQApp(
             composable(CampusQRoutes.ADMIN_REPORTS) {
                 AdminReportsAnalyticsScreen(
                     getAnalyticsForPeriod = { periodIdx -> viewModel.getAnalyticsByService(periodIdx) },
-                    onNavigate = { route -> navController.navigateSingleTopTo(route) },
-                    onExitToPreviewHub = { navController.navigateSingleTopTo(CampusQRoutes.DEMO_PREVIEW_HUB) }
+                    onNavigate = { route -> openRoute(route) },
+                    onExitToPreviewHub = { openRoute(CampusQRoutes.DEMO_PREVIEW_HUB) }
                 )
             }
 
@@ -459,8 +481,8 @@ fun CampusQApp(
                 AdminSystemSettingsScreen(
                     settings = institutionSettings,
                     onUpdateSettings = { updated -> viewModel.updateInstitutionSettings(updated) },
-                    onNavigate = { route -> navController.navigateSingleTopTo(route) },
-                    onExitToPreviewHub = { navController.navigateSingleTopTo(CampusQRoutes.DEMO_PREVIEW_HUB) }
+                    onNavigate = { route -> openRoute(route) },
+                    onExitToPreviewHub = { openRoute(CampusQRoutes.DEMO_PREVIEW_HUB) }
                 )
             }
         }
@@ -473,4 +495,15 @@ fun CampusQApp(
                 .padding(bottom = 84.dp)
         )
     }
+}
+
+/** Historical preview host. MainActivity uses the authenticated local-server root. */
+@Composable
+fun CampusQDemoApp(
+    viewModel: CampusQViewModel,
+    modifier: Modifier = Modifier,
+    startRoute: String = CampusQRoutes.SPLASH,
+    onReturnToAuthentication: (() -> Unit)? = null
+) {
+    CampusQWorkflowApp(viewModel, modifier, startRoute, onReturnToAuthentication)
 }

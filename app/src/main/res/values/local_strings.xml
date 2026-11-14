@@ -1,0 +1,4 @@
+<resources>
+    <string name="local_recovery_body">An authorized Registrar operator must verify your identity and reset your password on the laptop. This offline system does not send recovery email.</string>
+    <string name="local_recovery_action">Show recovery instructions</string>
+</resources>

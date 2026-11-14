@@ -1,5 +1,7 @@
 package com.example.campusq.ui.admin
 
+import com.example.campusq.ui.navigation.LocalAdminOverview
+import com.example.campusq.ui.navigation.LocalServerMode
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -60,6 +62,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.ui.platform.LocalDensity
@@ -99,6 +102,7 @@ import com.example.campusq.ui.components.CampusQSecondaryButton
 import com.example.campusq.ui.components.CampusQSectionHeading
 import com.example.campusq.ui.components.CampusQStatCard
 import com.example.campusq.ui.components.CampusQStatusChip
+import com.example.campusq.ui.components.CampusQPasswordField
 import com.example.campusq.ui.components.CampusQTextField
 import com.example.campusq.ui.components.CampusQTopAppBar
 import com.example.campusq.ui.components.getServiceIcon
@@ -151,6 +155,8 @@ fun AdminScaffoldWithDrawer(
     topBarActions: @Composable () -> Unit = {},
     content: @Composable (PaddingValues) -> Unit
 ) {
+    val isLocalServer = LocalServerMode.current
+    val onAccountOverview = LocalAdminOverview.current
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
@@ -205,6 +211,8 @@ fun AdminScaffoldWithDrawer(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
+                if (isLocalServer) NavigationDrawerItem(label = { Text("Accounts and activity") }, selected = false,
+                    onClick = { scope.launch { drawerState.close() }; onAccountOverview() })
                 adminAllDrawerDestinations.forEach { dest ->
                     val selected = currentRoute == dest.route
                     NavigationDrawerItem(
@@ -241,7 +249,7 @@ fun AdminScaffoldWithDrawer(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 NavigationDrawerItem(
-                    label = { Text("Switch Role Preview") },
+                    label = { Text((if (isLocalServer) "Sign out" else "Switch Role Preview")) },
                     icon = { Icon(Icons.Default.SwapHoriz, contentDescription = null) },
                     selected = false,
                     onClick = {
@@ -251,7 +259,7 @@ fun AdminScaffoldWithDrawer(
                     modifier = Modifier.padding(horizontal = 12.dp)
                 )
                 NavigationDrawerItem(
-                    label = { Text("Exit Admin Demo", color = CampusQError) },
+                    label = { Text((if (isLocalServer) "Sign out" else "Exit Admin Demo"), color = CampusQError) },
                     icon = { Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = null, tint = CampusQError) },
                     selected = false,
                     onClick = {
@@ -301,6 +309,7 @@ fun AdminDashboardScreen(
     onNavigate: (String) -> Unit,
     onExitToPreviewHub: () -> Unit
 ) {
+    val isLocalServer = LocalServerMode.current
     val activeStaffCount = staffMembers.count { it.isActive }
     val activeServiceCount = services.count { it.isAvailable }
     val waitingCount = tickets.count { it.status == QueueStatus.WAITING }
@@ -340,7 +349,7 @@ fun AdminDashboardScreen(
                     color = CampusQAdminPurpleLight
                 ) {
                     Text(
-                        text = "Demo Metrics",
+                        text = (if (isLocalServer) "System Metrics" else "Demo Metrics"),
                         style = MaterialTheme.typography.labelSmall.copy(
                             color = CampusQAdminPurple,
                             fontWeight = FontWeight.Bold
@@ -489,9 +498,12 @@ fun AdminManageServicesScreen(
     onNavigate: (String) -> Unit,
     onExitToPreviewHub: () -> Unit,
     onSaveService: (String?, String, String, String, ServiceIconType, Boolean, Boolean, Boolean, Int) -> Unit,
-    onToggleServiceAvailability: (String) -> Unit
+    onToggleServiceAvailability: (String) -> Unit,
+    onDeleteService: ((String) -> Unit)? = null
 ) {
+    val isLocalServer = LocalServerMode.current
     var searchQuery by rememberSaveable { mutableStateOf("") }
+    var deletingServiceId by remember { mutableStateOf<String?>(null) }
     var showFormSheet by rememberSaveable { mutableStateOf(false) }
     var editingServiceId by rememberSaveable { mutableStateOf<String?>(null) }
 
@@ -689,7 +701,7 @@ fun AdminManageServicesScreen(
                     .padding(horizontal = 20.dp, vertical = 12.dp)
             ) {
                 Text(
-                    text = if (editingServiceId == null) "Add Registrar Service (Demo)" else "Edit Registrar Service (Demo)",
+                    text = if (editingServiceId == null) (if (isLocalServer) "Add Registrar Service" else "Add Registrar Service (Demo)") else (if (isLocalServer) "Edit Registrar Service" else "Edit Registrar Service (Demo)"),
                     style = MaterialTheme.typography.titleLarge
                 )
                 Spacer(modifier = Modifier.height(12.dp))
@@ -768,7 +780,7 @@ fun AdminManageServicesScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 CampusQPrimaryButton(
-                    text = "Save Service (Demo)",
+                    text = (if (isLocalServer) "Save Service" else "Save Service (Demo)"),
                     onClick = {
                         if (formName.isBlank()) {
                             formNameError = "Service name is required"
@@ -790,9 +802,18 @@ fun AdminManageServicesScreen(
                         }
                     }
                 )
+                if (isLocalServer && editingServiceId != null) {
+                    TextButton(onClick = { deletingServiceId = editingServiceId }) { Text("Delete unused service", color = CampusQError) }
+                }
                 Spacer(modifier = Modifier.height(24.dp))
             }
         }
+    }
+    deletingServiceId?.let { id ->
+        CampusQConfirmationDialog(title = "Delete service?", message = "Only a service without queue or appointment history can be deleted. Otherwise deactivate it.",
+            confirmText = "Delete", isDestructive = true,
+            onConfirm = { onDeleteService?.invoke(id); deletingServiceId = null; showFormSheet = false },
+            onDismiss = { deletingServiceId = null })
     }
 }
 
@@ -806,8 +827,11 @@ fun AdminStaffManagementScreen(
     onNavigate: (String) -> Unit,
     onExitToPreviewHub: () -> Unit,
     onSaveStaff: (String?, String, String, String, Boolean) -> Unit,
-    onToggleStaffActive: (String) -> Unit
+    onToggleStaffActive: (String) -> Unit,
+    onCreateStaff: ((String, String, String, Boolean, String) -> Unit)? = null
 ) {
+    val isLocalServer = LocalServerMode.current
+    var initialPassword by remember { mutableStateOf("") }
     var showStaffSheet by rememberSaveable { mutableStateOf(false) }
     var editingStaffId by rememberSaveable { mutableStateOf<String?>(null) }
     var formName by rememberSaveable { mutableStateOf("") }
@@ -819,6 +843,7 @@ fun AdminStaffManagementScreen(
     var staffIdPendingDisable by rememberSaveable { mutableStateOf<String?>(null) }
 
     fun openAddStaff() {
+        initialPassword = ""
         editingStaffId = null
         formName = ""
         formEmail = ""
@@ -829,6 +854,7 @@ fun AdminStaffManagementScreen(
     }
 
     fun openEditStaff(stf: StaffProfile) {
+        initialPassword = ""
         editingStaffId = stf.id
         formName = stf.fullName
         formEmail = stf.email
@@ -973,7 +999,7 @@ fun AdminStaffManagementScreen(
 
     if (showStaffSheet) {
         ModalBottomSheet(
-            onDismissRequest = { showStaffSheet = false },
+            onDismissRequest = { initialPassword = ""; showStaffSheet = false },
             containerColor = CampusQSurface
         ) {
             Column(
@@ -983,7 +1009,7 @@ fun AdminStaffManagementScreen(
                     .padding(horizontal = 20.dp, vertical = 12.dp)
             ) {
                 Text(
-                    text = if (editingStaffId == null) "Add Registrar Staff (Demo)" else "Edit Registrar Staff (Demo)",
+                    text = if (editingStaffId == null) (if (isLocalServer) "Add Registrar Staff" else "Add Registrar Staff (Demo)") else (if (isLocalServer) "Edit Registrar Staff" else "Edit Registrar Staff (Demo)"),
                     style = MaterialTheme.typography.titleLarge
                 )
                 Spacer(modifier = Modifier.height(12.dp))
@@ -1013,6 +1039,9 @@ fun AdminStaffManagementScreen(
                     placeholder = "Window 1"
                 )
 
+                if (isLocalServer && editingStaffId == null) {
+                    CampusQPasswordField(value = initialPassword, onValueChange = { initialPassword = it }, label = "Initial password (at least 8 characters)")
+                }
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -1036,7 +1065,7 @@ fun AdminStaffManagementScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 CampusQPrimaryButton(
-                    text = "Save Staff Entry (Demo)",
+                    text = (if (isLocalServer) "Save Staff Entry" else "Save Staff Entry (Demo)"),
                     onClick = {
                         if (formName.trim().length < 3) {
                             formNameError = "Enter a full staff name."
@@ -1046,15 +1075,20 @@ fun AdminStaffManagementScreen(
                             formNameError = "Assigned counter is required."
                         } else if (staffMembers.any { it.id != editingStaffId && it.email.equals(formEmail.trim(), true) }) {
                             formNameError = "A staff member already uses this email."
+                        } else if (isLocalServer && editingStaffId == null && initialPassword.length < 8) {
+                            formNameError = "Use an initial password of at least 8 characters."
                         } else {
-                            onSaveStaff(
+                            if (isLocalServer && editingStaffId == null) {
+                                onCreateStaff?.invoke(formName, formEmail.trim(), formCounter, formActive, initialPassword)
+                                initialPassword = ""
+                            } else onSaveStaff(
                                 editingStaffId,
                                 formName,
                                 formEmail.trim(),
                                 formCounter,
                                 formActive
                             )
-                            showStaffSheet = false
+                            initialPassword = ""; showStaffSheet = false
                         }
                     }
                 )
@@ -1064,10 +1098,9 @@ fun AdminStaffManagementScreen(
     }
 
     if (staffIdPendingDisable != null) {
-        val stf = staffMembers.find { it.id == staffIdPendingDisable }
-        CampusQConfirmationDialog(
+            CampusQConfirmationDialog(
             title = "Disable Staff Profile?",
-            message = "Mark ${stf?.fullName ?: "this staff member"} as Inactive in the local demonstration directory?",
+            message = if (isLocalServer) "Disable this staff account and revoke its sessions?" else "Mark this staff member inactive in the demonstration directory?",
             confirmText = "Set Inactive",
             isDestructive = true,
             onConfirm = {

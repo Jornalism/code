@@ -1,7 +1,72 @@
+# Persistent offline CampusQ implementation — 2026-11-13
+**Current active application: local laptop REST server + SQLite.** This supersedes the prior Firebase-only implementation boundary under the user's full offline capstone authorization. Firebase/Demo history remains below.
+
+Implemented real local authentication/server roles, encrypted Android sessions, Student registration/profile/queue/appointments, Staff processing/review, Admin service/Staff/accounts/activity/reports/settings, transactional idempotency/conflict checks and lifecycle polling. Existing23 screens/five PNGs/branding preserved; normal MainActivity has no Demo authorization selector. DemoRepository remains isolated for reference/tests. No Firebase cloud changes, billing, firewall modifications, deleted files, reset or rewritten checkpoints.
+
+**Fresh verification:** backend20/20; JVM70/70; Gradle Sync/debug build passed; lint0 errors/24 warnings; Android XML81 cases:76 passed,0 failed/errors,5 intentional inactive Firebase skips. All8 new actual local-server Android cases and48 existing phone/small-screen captures passed. Main APK installed/launched; normal login has no Demo entry. Local login/connection previews reviewed after refreshing stale preview dependencies.
+
+Server and actual activity restart persistence checked. Windows .cmd startup/online backup passed; normal schema1 database intentionally contains no sample accounts. Operator must privately provision the first Admin and presentation services/Staff. Physical-device LAN, full OS process death, HTTPS certificate provisioning, WAN-disabled rehearsal and exhaustive accessibility remain unverified. No public-network readiness claim.
+
+[Completion report](CAMPUSQ_OFFLINE_COMPLETION_REPORT.md) · [Screen checklist](CAMPUSQ_OFFLINE_PROGRESS.md) · [Setup](docs/offline/README.md) · [Presentation](docs/offline/PRESENTATION.md)
+
+---
+
+# Phase 4 initial local authentication foundation — 2026-11-13
+**IMPLEMENTED locally; Phase 4 is not fully complete. Overall connected verification is NOT CLEAN. Phase 5 unstarted.**
+
+Added Firebase Auth repository/session coordinator/AuthViewModel, fail-closed claims/profile policy and separate real-auth/demo navigation roots. Existing registration/login forms now support validation, loading, verification/recheck/resend, generic recovery and signout. Passwords use transient state. No role is granted by registration or Demo Mode; production profiles remain unavailable under unchanged deny-all rules.
+
+Production account/login/email operations remain deliberately gated pending separate approval. No provider initialization, production users/profile documents/claims, Rules/index/Functions deployment, IAM or billing change. Trusted operator/UID profile/authorization-version design is documentation only.
+
+**Verified:** Gradle Sync; debug APK and genuine-config opt-in build;64 JVM tests (31 new);59 backend emulator cases; all8 new Android cases (6 fake-repository UI,2 actual Auth SDK emulator);1 genuine-config SDK identity test;3 Compose previews; APK install/MainActivity launch. Final lint:0 errors/22 warnings. No dependency versions changed; added lifecycle-runtime-compose at existing2.9.0.
+
+**Failures retained:** initial SDK-cache setup failures were repaired and2/2 retested successfully. Full rerun XML:73 cases,70 passed,1 existing PixelCopy capture failure,2 deliberate real-cloud skips. Standalone screen rerun:46/48 passed,2 PixelCopy capture failures. Initial screen run had48/48 pass; later failures must not be called a clean visual pass. Host memory pressure was observed, but root cause is not conclusively established. Full process-death persistence, UI-to-SDK emulator journey, mail delivery, TalkBack and broader device acceptance remain unverified.
+
+All23 screens plus hub, five PNGs, Student/Staff/Admin business files, DemoRepository, CampusQViewModel, deny-all rules and checkpoints49b6315/2f323bf remain preserved. No files deleted, no commit/reset/staging. Pre-existing pending Phase3 work remains intact.
+
+[Phase 4 implementation/report](CAMPUSQ_PHASE_4_REPORT.md) · [Provisioning design — pending approval](docs/firebase/PHASE_4_PROVISIONING.md)
+
+The Phase3/Phase2 entries below are historical. Their “Phase4 unstarted” statements are superseded by this explicitly authorized local implementation.
+
+---
+
+# Phase3 approved deny-all Rules publication — 2026-11-12
+**COMPLETE:** Rules-only CLI deployment exit0 to campusq-e06c7/(default); published cloud.firestore release verified. Ruleset a42e813a-233e-4ca2-969b-6592ec55c483; exact source/byte/hash match to unchanged tested firestore.rules.
+Actual unauthenticated GET and conditional-write commit returned403 PERMISSION_DENIED. Impossible year9999 updateTime precondition guaranteed no create/update. No documents or other resources changed; billing remains disabled.
+Screens/assets/DemoRepository/Demo Mode and checkpoints preserved. No Phase4. See [current report](CAMPUSQ_PHASE_3_COMPLETION_REPORT.md) for evidence and limitations.
+Earlier local-only/no-release statements below are historical and superseded by this approved publication.
+
+---
+
+# Local Firestore Rules baseline verification — 2026-11-12
+Existing firestore.rules already denies all client reads/writes recursively; firebase.json correctly references it for(default). Neither file required changes.
+Fresh Firestore-only emulator validation:58 passed,0 failures/skips; syntax accepted and read/list/create/update/delete denied across11 collections and all five actor types, plus nested paths and escalation batches. Fixtures were disposable local emulator data only; unrelated Auth/Functions smoke excluded.
+Updated SECURITY_RULES.md and the Phase3 report to clarify scope, results and no-deployment boundary. Added ignored local test helper/evidence; no app/policy/config edits. Initial filter included an unrelated smoke case; corrected helper rerun passed.
+No cloud requests/deployment, billing change, extra database or sample cloud data. No Phase4. Await explicit approval before any publication.
+[Local rules](firestore.rules) · [Security documentation](docs/firebase/SECURITY_RULES.md) · [Phase3 report](CAMPUSQ_PHASE_3_COMPLETION_REPORT.md)
+
+---
+
+# Phase3 default database creation and cloud verification — 2026-11-12
+Current status: **approved default database created; SDK identity and real read-only server-denial connection VERIFIED. No published Rules release exists. Phase4 unstarted.**
+
+Preflight: project-scoped Firestore locations includes Singapore; Firebase resources.locationId unset; no existing databases; billingEnabled=false with no billing account. Exactly(default) was then created with Standard edition, Native mode,asia-southeast1. Post-creation GET/list confirms one database,STANDARD,FIRESTORE_NATIVE,asia-southeast1,freeTier=true, paid PITR disabled. Billing remains disabled; no upgrade or account attachment.
+
+Initial security: CLI-created closed client access; no test/open rules selected. Rules release list remains empty/default release GET404, so no deployed Rules source exists to inspect. Local deny-all rules unchanged; no custom Rules/index/function deployment. No sample documents or document writes.
+
+New targeted cloud Android run: **2 passed,0 failures/errors/skips**, BUILD SUCCESSFUL in1m43s. Independently confirmed metadata allowed explicit firebaseCloudDatabaseVerified=true; real unauthenticated Source.SERVER services read was denied with PERMISSION_DENIED. No write probe or full role/write-policy audit claimed.
+
+Preceding full regressions (not rerun for remote provisioning):33 passing JVM outputs;59 backend tests passed;65 Android cases with64 passed/1 then-expected database skip;lint0 errors/20 warnings. Those historical results remain separate from the new2/2 targeted run.
+All23 screens/assets/DemoRepository/Demo Mode and checkpoints49b6315/2f323bf preserved; no application or local policy/build changes. Evidence and exact commands are in the [Phase3 completion report](CAMPUSQ_PHASE_3_COMPLETION_REPORT.md). See [setup guide](docs/firebase/SETUP.md).
+
+Remaining: explicit versioned deployed Rules-source verification requires a separately authorized deployment if desired; callable/FCM delivery, full production security validation and broader Phase2 device/accessibility acceptance remain outside verified scope. No Phase4 work until explicit authorization.
+
+---
+
 # CampusQ — Development progress
 
-## Phase 3 — Firebase foundation (2026-11-11)
-Current status: available local Phase 3 foundation complete and verified; real-project setup remains blocked.
+## Historical Phase 3 — Firebase foundation (2026-11-11)
+Status at that handoff: local Phase 3 foundation complete; real-project setup blocked. The current cloud verification section above supersedes those historical blockers.
 Real connection: BLOCKED, no authorized Firebase CLI account or real project configuration. Approved target is a new CampusQ project, Standard(default), asia-southeast1, com.example.campusq. No billing enabled.
 Completed: Git baseline 49b6315; optional Google Services processing; Firebase SDK dependencies; deny-all prototype rules; schema/index/role-trust documentation; emulator configuration; shared demo-state and asynchronous catalog boundaries. All 23 screens and five brand assets preserved. Demo Mode remains active.
 Verified: Gradle Sync and debug APK PASS; 33 local tests PASS; 59 backend emulator tests PASS; 63 device tests PASS (0 failures/skips, Pixel 7/API 37); lint 0 errors/20 warnings. Final combined build succeeded in 6m 22s. npm audits report 0 vulnerabilities after patched grpc-js override.

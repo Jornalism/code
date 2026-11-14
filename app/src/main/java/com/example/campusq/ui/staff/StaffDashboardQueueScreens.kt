@@ -1,5 +1,6 @@
 package com.example.campusq.ui.staff
 
+import com.example.campusq.ui.navigation.LocalServerMode
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -112,6 +113,7 @@ fun StaffDashboardScreen(
     onSwitchRolePreview: () -> Unit,
     counterName: String = "Window 1"
 ) {
+    val isLocalServer = LocalServerMode.current
     var showCallNextDialog by rememberSaveable { mutableStateOf(false) }
 
     val waitingCount = tickets.count { it.status == QueueStatus.WAITING }
@@ -132,7 +134,7 @@ fun StaffDashboardScreen(
                     IconButton(onClick = onSwitchRolePreview) {
                         Icon(
                             imageVector = Icons.Default.SwapHoriz,
-                            contentDescription = "Switch Role Preview",
+                            contentDescription = (if (isLocalServer) "Sign out" else "Switch Role Preview"),
                             tint = Color.White
                         )
                     }
@@ -288,7 +290,7 @@ fun StaffDashboardScreen(
             if (activeQueuePreview.isEmpty()) {
                 CampusQEmptyState(
                     title = "Queue is Clear",
-                    message = "All waiting demonstration tickets have been processed."
+                    message = (if (isLocalServer) "All waiting tickets have been processed." else "All waiting demonstration tickets have been processed.")
                 )
             } else {
                 activeQueuePreview.forEach { ticket ->
@@ -306,7 +308,7 @@ fun StaffDashboardScreen(
     if (showCallNextDialog && nextWaitingTicket != null) {
         CampusQConfirmationDialog(
             title = "Call Next Ticket?",
-            message = "Call demonstration ticket ${nextWaitingTicket.ticketNumber} (${nextWaitingTicket.studentName} — ${nextWaitingTicket.serviceName}) to $counterName?",
+            message = (if (isLocalServer) "Call ticket ${nextWaitingTicket.ticketNumber} (${nextWaitingTicket.studentName} — ${nextWaitingTicket.serviceName}) to $counterName?" else "Call demonstration ticket ${nextWaitingTicket.ticketNumber} (${nextWaitingTicket.studentName} — ${nextWaitingTicket.serviceName}) to $counterName?"),
             confirmText = "Call Ticket",
             onConfirm = {
                 showCallNextDialog = false
@@ -330,6 +332,7 @@ fun StaffQueueManagementScreen(
     onOpenTicketDetails: (String) -> Unit,
     onCallTicket: (QueueTicket) -> Unit
 ) {
+    val isLocalServer = LocalServerMode.current
     var selectedTabIndex by rememberSaveable { mutableIntStateOf(0) }
     val tabs = listOf("Waiting", "Called", "Serving")
 
@@ -373,7 +376,7 @@ fun StaffQueueManagementScreen(
             if (filteredTickets.isEmpty()) {
                 CampusQEmptyState(
                     title = "No ${tabs[selectedTabIndex]} Tickets",
-                    message = "There are currently no demonstration tickets in the ${tabs[selectedTabIndex].lowercase()} state."
+                    message = (if (isLocalServer) "There are currently no tickets in the ${tabs[selectedTabIndex].lowercase()} state." else "There are currently no demonstration tickets in the ${tabs[selectedTabIndex].lowercase()} state.")
                 )
             } else {
                 LazyColumn(
@@ -502,6 +505,7 @@ fun StaffTicketDetailsScreen(
     onUpdateStatus: (String, QueueStatus) -> Unit,
     onNavigateToServiceInProgress: (String) -> Unit
 ) {
+    val isLocalServer = LocalServerMode.current
     var pendingStatusTransition by rememberSaveable { mutableStateOf<QueueStatus?>(null) }
 
     Scaffold(
@@ -523,7 +527,7 @@ fun StaffTicketDetailsScreen(
             if (ticket == null) {
                 CampusQEmptyState(
                     title = "Ticket Not Found",
-                    message = "The requested demonstration ticket could not be loaded.",
+                    message = (if (isLocalServer) "The requested ticket could not be loaded." else "The requested demonstration ticket could not be loaded."),
                     actionButtonText = "Go Back",
                     onActionClick = onBackClick
                 )
@@ -578,7 +582,7 @@ fun StaffTicketDetailsScreen(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                CampusQSectionHeading(title = "Staff Actions (State-Aware Demo)")
+                CampusQSectionHeading(title = (if (isLocalServer) "Staff Actions (State-Aware)" else "Staff Actions (State-Aware Demo)"))
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
                     text = "Only valid state transitions for ${ticket.status.displayName} are enabled below:",
@@ -596,6 +600,11 @@ fun StaffTicketDetailsScreen(
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
+
+                if (isLocalServer && ticket.status in setOf(QueueStatus.WAITING, QueueStatus.CALLED, QueueStatus.SKIPPED)) {
+                    CampusQSecondaryButton(text = "Cancel Ticket", onClick = { pendingStatusTransition = QueueStatus.CANCELLED })
+                    Spacer(modifier = Modifier.height(10.dp))
+                }
 
                 // CALLED -> Start Service
                 CampusQPrimaryButton(
@@ -657,7 +666,7 @@ fun StaffTicketDetailsScreen(
         val target = pendingStatusTransition!!
         CampusQConfirmationDialog(
             title = "Confirm Status Update",
-            message = "Update demonstration ticket ${ticket.ticketNumber} (${ticket.studentName}) to ${target.displayName}?",
+            message = (if (isLocalServer) "Update ticket ${ticket.ticketNumber} (${ticket.studentName}) to ${target.displayName}?" else "Update demonstration ticket ${ticket.ticketNumber} (${ticket.studentName}) to ${target.displayName}?"),
             confirmText = "Confirm",
             onConfirm = {
                 pendingStatusTransition = null
@@ -708,6 +717,7 @@ fun ServiceInProgressScreen(
     onMarkNoShowOrCancel: (String) -> Unit,
     counterName: String = "Window 1 (Registrar)"
 ) {
+    val isLocalServer = LocalServerMode.current
     var showCompleteDialog by rememberSaveable { mutableStateOf(false) }
     var showNoShowDialog by rememberSaveable { mutableStateOf(false) }
 
@@ -814,7 +824,7 @@ fun ServiceInProgressScreen(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 CampusQDestructiveButton(
-                    text = "Mark No Show / Cancel (Demo)",
+                    text = (if (isLocalServer) "Mark No Show" else "Mark No Show / Cancel (Demo)"),
                     enabled = ticket.status != QueueStatus.COMPLETED,
                     onClick = { showNoShowDialog = true }
                 )
@@ -825,7 +835,7 @@ fun ServiceInProgressScreen(
     if (showCompleteDialog && ticket != null) {
         CampusQConfirmationDialog(
             title = "Complete Service?",
-            message = "Mark demonstration ticket ${ticket.ticketNumber} (${ticket.serviceName}) as COMPLETED? This will update local history and staff/admin screens.",
+            message = (if (isLocalServer) "Mark ticket ${ticket.ticketNumber} (${ticket.serviceName}) as COMPLETED? This will update the shared history and staff/admin screens." else "Mark demonstration ticket ${ticket.ticketNumber} (${ticket.serviceName}) as COMPLETED? This will update local history and staff/admin screens."),
             confirmText = "Complete Service",
             onConfirm = {
                 showCompleteDialog = false
@@ -838,7 +848,7 @@ fun ServiceInProgressScreen(
     if (showNoShowDialog && ticket != null) {
         CampusQConfirmationDialog(
             title = "Mark Ticket as No Show?",
-            message = "Mark demonstration ticket ${ticket.ticketNumber} as NO_SHOW in the local demo state?",
+            message = (if (isLocalServer) "Mark ticket ${ticket.ticketNumber} as NO_SHOW in the server database?" else "Mark demonstration ticket ${ticket.ticketNumber} as NO_SHOW in the local demo state?"),
             confirmText = "Mark No Show",
             isDestructive = true,
             onConfirm = {

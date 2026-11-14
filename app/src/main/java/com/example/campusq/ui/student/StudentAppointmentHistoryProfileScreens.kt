@@ -1,5 +1,6 @@
 package com.example.campusq.ui.student
 
+import com.example.campusq.ui.navigation.LocalServerMode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -42,6 +43,8 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import com.example.campusq.data.model.AppointmentSlot
+import com.example.campusq.data.model.isReserved
 import com.example.campusq.data.model.Appointment
 import com.example.campusq.data.model.AppointmentStatus
 import com.example.campusq.data.model.DemoBookingRules
@@ -110,8 +113,10 @@ fun BookAppointmentScreen(
     onConfirmBooking: (RegistrarService, String, String) -> Unit,
     appointments: List<Appointment> = emptyList(),
     onCancelAppointment: (String) -> Unit = {},
-    onRescheduleAppointment: (String, RegistrarService, String, String) -> Boolean = { _, _, _, _ -> false }
+    onRescheduleAppointment: (String, RegistrarService, String, String) -> Boolean = { _, _, _, _ -> false },
+    reservedSlots: List<AppointmentSlot> = emptyList()
 ) {
+    val isLocalServer = LocalServerMode.current
     val availableServices = services.filter { it.isAvailable && it.isAppointmentEnabled }
 
     var selectedServiceId by rememberSaveable(preselectedService?.id) {
@@ -132,6 +137,7 @@ fun BookAppointmentScreen(
     val selectedDate = LocalDate.parse(selectedDateText)
     var currentMonthText by rememberSaveable { mutableStateOf(YearMonth.from(initialValidDate).toString()) }
     val currentMonth = YearMonth.parse(currentMonthText)
+    var viewingAppointment by remember { mutableStateOf<Appointment?>(null) }
     var editingAppointmentId by rememberSaveable { mutableStateOf<String?>(null) }
     var cancellingAppointmentId by rememberSaveable { mutableStateOf<String?>(null) }
 
@@ -172,10 +178,10 @@ fun BookAppointmentScreen(
                 .padding(16.dp)
         ) {
             if (appointments.isNotEmpty()) {
-                CampusQSectionHeading(title = "Your Demo Appointments")
+                CampusQSectionHeading(title = (if (isLocalServer) "Your Appointments" else "Your Demo Appointments"))
                 Spacer(modifier = Modifier.height(8.dp))
                 appointments.forEach { appointment ->
-                    CampusQAppointmentCard(appointment = appointment, onClick = {})
+                    CampusQAppointmentCard(appointment = appointment, onClick = { viewingAppointment = appointment })
                     if (appointment.status.canEdit) {
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             TextButton(onClick = {
@@ -309,7 +315,7 @@ fun BookAppointmentScreen(
                                 isSelected = selectedTimeSlot == slotLabel,
                                 isAvailable = isSlotAvailable && runCatching {
                                     DemoBookingRules.validateSchedule(selectedDate.format(DemoBookingRules.dateFormatter), slotLabel, LocalDate.now(), LocalTime.now())
-                                }.isSuccess && appointments.none {
+                                }.isSuccess && !reservedSlots.isReserved(selectedService?.id.orEmpty(), selectedDate.format(dateFormatter), slotLabel, editingAppointmentId) && appointments.none {
                                     it.id != editingAppointmentId && it.status !in setOf(AppointmentStatus.CANCELLED, AppointmentStatus.NO_SHOW) &&
                                         it.dateText == selectedDate.format(DemoBookingRules.dateFormatter) && it.timeSlot == slotLabel
                                 },
@@ -327,7 +333,7 @@ fun BookAppointmentScreen(
                 text = if (editingAppointmentId == null) "Confirm Appointment" else "Confirm Rescheduling",
                 enabled = selectedService != null && runCatching {
                     DemoBookingRules.validateSchedule(selectedDate.format(DemoBookingRules.dateFormatter), selectedTimeSlot, LocalDate.now(), LocalTime.now())
-                }.isSuccess && appointments.none {
+                }.isSuccess && !reservedSlots.isReserved(selectedService?.id.orEmpty(), selectedDate.format(dateFormatter), selectedTimeSlot, editingAppointmentId) && appointments.none {
                     it.id != editingAppointmentId && it.status !in setOf(AppointmentStatus.CANCELLED, AppointmentStatus.NO_SHOW) &&
                         it.dateText == selectedDate.format(DemoBookingRules.dateFormatter) && it.timeSlot == selectedTimeSlot
                 },
@@ -337,11 +343,16 @@ fun BookAppointmentScreen(
         }
     }
 
+    viewingAppointment?.let { item ->
+        AlertDialog(onDismissRequest = { viewingAppointment = null }, title = { Text(item.referenceNumber) },
+            text = { Text("${item.serviceName}\n${item.dateText} • ${item.timeSlot}\nStatus: ${item.status.displayName}") },
+            confirmButton = { TextButton(onClick = { viewingAppointment = null }) { Text("Close") } })
+    }
     if (showConfirmSummaryDialog && selectedService != null) {
         val formattedDate = selectedDate.format(dateFormatter)
         CampusQConfirmationDialog(
-            title = "Confirm Demo Appointment",
-            message = "Service: ${selectedService.name}\nDate: $formattedDate\nTime: $selectedTimeSlot\n\nNote: This confirms a local UI demonstration booking only.",
+            title = (if (isLocalServer) "Confirm Appointment" else "Confirm Demo Appointment"),
+            message = (if (isLocalServer) "Service: ${selectedService.name}\nDate: $formattedDate\nTime: $selectedTimeSlot\n\nNote: This confirms a booking on the CampusQ laptop server." else "Service: ${selectedService.name}\nDate: $formattedDate\nTime: $selectedTimeSlot\n\nNote: This confirms a local UI demonstration booking only."),
             confirmText = "Confirm Booking",
             onConfirm = {
                 showConfirmSummaryDialog = false
@@ -357,7 +368,7 @@ fun BookAppointmentScreen(
     }
     cancellingAppointmentId?.let { id ->
         CampusQConfirmationDialog(
-            title = "Cancel Appointment?", message = "Cancel this local demonstration appointment?",
+            title = "Cancel Appointment?", message = (if (isLocalServer) "Cancel this appointment?" else "Cancel this local demonstration appointment?"),
             confirmText = "Cancel Appointment", isDestructive = true,
             onConfirm = { onCancelAppointment(id); cancellingAppointmentId = null },
             onDismiss = { cancellingAppointmentId = null }
@@ -404,6 +415,7 @@ fun TransactionHistoryScreen(
     onNavigateBottom: (String) -> Unit,
     onBackClick: (() -> Unit)? = null
 ) {
+    val isLocalServer = LocalServerMode.current
     var selectedTabIndex by rememberSaveable { mutableIntStateOf(0) }
     var selectedRecord by remember { mutableStateOf<TransactionRecord?>(null) }
 
@@ -453,7 +465,7 @@ fun TransactionHistoryScreen(
             if (filteredRecords.isEmpty()) {
                 CampusQEmptyState(
                     title = "No Transaction Records",
-                    message = "No ${tabs[selectedTabIndex].lowercase()} records found in the current demonstration state.",
+                    message = (if (isLocalServer) "No ${tabs[selectedTabIndex].lowercase()} records found in the stored history." else "No ${tabs[selectedTabIndex].lowercase()} records found in the current demonstration state."),
                     icon = Icons.Default.History
                 )
             } else {
@@ -488,7 +500,7 @@ fun TransactionHistoryScreen(
                     Text("Student: ${rec.studentName}", style = MaterialTheme.typography.bodyMedium)
                     Text("Date & Time: ${rec.dateTimeText}", style = MaterialTheme.typography.bodyMedium)
                     Text(
-                        text = "Status: ${rec.queueStatus?.displayName ?: rec.appointmentStatus?.displayName ?: "Completed"} (Demo)",
+                        text = "Status: ${rec.queueStatus?.displayName ?: rec.appointmentStatus?.displayName ?: "Completed"}${if (isLocalServer) "" else " (Demo)"}",
                         style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
                     )
                 }
@@ -572,6 +584,7 @@ fun StudentProfileScreen(
     onUpdateProfile: (String, String, String) -> Unit,
     onLogoutToPreviewHub: () -> Unit
 ) {
+    val isLocalServer = LocalServerMode.current
     var activeDialog by rememberSaveable { mutableStateOf<String?>(null) }
     var showLogoutDialog by rememberSaveable { mutableStateOf(false) }
 
@@ -614,7 +627,7 @@ fun StudentProfileScreen(
 
             CampusQProfileMenuItem(
                 title = "Personal Information",
-                subtitle = "View or update demonstration student info",
+                subtitle = (if (isLocalServer) "View or update your student information" else "View or update demonstration student info"),
                 icon = Icons.Default.Person,
                 onClick = {
                     editName = studentProfile.fullName
@@ -643,8 +656,8 @@ fun StudentProfileScreen(
                 onClick = { activeDialog = "help" }
             )
             CampusQProfileMenuItem(
-                title = "Switch Role Preview",
-                subtitle = "Switch between Student, Staff, and Admin UI",
+                title = (if (isLocalServer) "Sign out" else "Switch Role Preview"),
+                subtitle = (if (isLocalServer) "Sign out before using another account" else "Switch between Student, Staff, and Admin UI"),
                 icon = Icons.Default.SwapHoriz,
                 onClick = onLogoutToPreviewHub
             )
@@ -656,7 +669,7 @@ fun StudentProfileScreen(
             )
             CampusQProfileMenuItem(
                 title = "Logout",
-                subtitle = "Return to UI Preview / Login entry",
+                subtitle = (if (isLocalServer) "Return to sign in" else "Return to UI Preview / Login entry"),
                 icon = Icons.AutoMirrored.Filled.ExitToApp,
                 isDestructive = true,
                 onClick = { showLogoutDialog = true }
@@ -668,7 +681,7 @@ fun StudentProfileScreen(
         "personal" -> {
             AlertDialog(
                 onDismissRequest = { activeDialog = null },
-                title = { Text("Personal Information (Demo)", style = MaterialTheme.typography.titleLarge) },
+                title = { Text((if (isLocalServer) "Personal Information" else "Personal Information (Demo)"), style = MaterialTheme.typography.titleLarge) },
                 text = {
                     Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                         profileError?.let { Text(it, color = CampusQError) }
@@ -704,7 +717,7 @@ fun StudentProfileScreen(
                             }
                         }
                     ) {
-                        Text("Save Demo Info", color = CampusQGreenDark, fontWeight = FontWeight.Bold)
+                        Text((if (isLocalServer) "Save Info" else "Save Demo Info"), color = CampusQGreenDark, fontWeight = FontWeight.Bold)
                     }
                 },
                 dismissButton = {
@@ -718,13 +731,13 @@ fun StudentProfileScreen(
         "account" -> {
             AlertDialog(
                 onDismissRequest = { activeDialog = null },
-                title = { Text("Account Settings (Demo)", style = MaterialTheme.typography.titleLarge) },
+                title = { Text((if (isLocalServer) "Account Settings" else "Account Settings (Demo)"), style = MaterialTheme.typography.titleLarge) },
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text("Program: ${studentProfile.program}", style = MaterialTheme.typography.bodyMedium)
                         Text("Year Level: ${studentProfile.yearLevel}", style = MaterialTheme.typography.bodyMedium)
                         Text(
-                            "Password & credential changes are disabled in this UI-only prototype.",
+                            (if (isLocalServer) "Contact the authorized Registrar operator to reset a password. No recovery email is sent." else "Password & credential changes are disabled in this UI-only prototype."),
                             style = MaterialTheme.typography.bodySmall
                         )
                     }
@@ -740,7 +753,7 @@ fun StudentProfileScreen(
         "notifications" -> {
             AlertDialog(
                 onDismissRequest = { activeDialog = null },
-                title = { Text("Notification Preferences (Demo)", style = MaterialTheme.typography.titleLarge) },
+                title = { Text((if (isLocalServer) "Notification Preferences" else "Notification Preferences (Demo)"), style = MaterialTheme.typography.titleLarge) },
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Row(
@@ -748,10 +761,11 @@ fun StudentProfileScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("Queue Turn Alerts", style = MaterialTheme.typography.bodyMedium)
+                            Text(if (isLocalServer) "Push alerts unavailable offline" else "Queue Turn Alerts", style = MaterialTheme.typography.bodyMedium)
                             Switch(
-                                checked = notifyQueueUpdates,
+                                checked = !isLocalServer && notifyQueueUpdates,
                                 onCheckedChange = { notifyQueueUpdates = it },
+                                enabled = !isLocalServer,
                                 colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = CampusQGreenPrimary)
                             )
                         }
@@ -760,10 +774,11 @@ fun StudentProfileScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("Appointment Reminders", style = MaterialTheme.typography.bodyMedium)
+                            Text(if (isLocalServer) "Timed reminders unavailable offline" else "Appointment Reminders", style = MaterialTheme.typography.bodyMedium)
                             Switch(
-                                checked = notifyAppointmentReminders,
+                                checked = !isLocalServer && notifyAppointmentReminders,
                                 onCheckedChange = { notifyAppointmentReminders = it },
+                                enabled = !isLocalServer,
                                 colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = CampusQGreenPrimary)
                             )
                         }
@@ -801,7 +816,7 @@ fun StudentProfileScreen(
                 title = { Text("About CampusQ", style = MaterialTheme.typography.titleLarge) },
                 text = {
                     Text(
-                        "CampusQ — Smart Queue & Appointment Management System\nTagline: Queue smarter. Wait less.\n\nBSIT Academic Capstone Project UI/UX Prototype.",
+                        (if (isLocalServer) "CampusQ — Smart Queue & Appointment Management System\nTagline: Queue smarter. Wait less.\n\nBSIT Academic Capstone Project local-network application." else "CampusQ — Smart Queue & Appointment Management System\nTagline: Queue smarter. Wait less.\n\nBSIT Academic Capstone Project UI/UX Prototype."),
                         style = MaterialTheme.typography.bodyMedium.copy(color = CampusQTextPrimary)
                     )
                 },
@@ -817,9 +832,9 @@ fun StudentProfileScreen(
 
     if (showLogoutDialog) {
         CampusQConfirmationDialog(
-            title = "Exit Student Demo?",
-            message = "This will return you to the CampusQ UI Preview / Login screen. No remote session is active.",
-            confirmText = "Exit Demo",
+            title = (if (isLocalServer) "Sign out?" else "Exit Student Demo?"),
+            message = (if (isLocalServer) "Sign out of this account and return to the login screen?" else "This will return you to the CampusQ UI Preview / Login screen. No remote session is active."),
+            confirmText = (if (isLocalServer) "Sign out" else "Exit Demo"),
             isDestructive = true,
             onConfirm = {
                 showLogoutDialog = false

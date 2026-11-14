@@ -1,5 +1,6 @@
 package com.example.campusq.ui.student
 
+import com.example.campusq.ui.navigation.LocalServerMode
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -129,6 +130,7 @@ fun StudentHomeDashboardScreen(
     onRestoreSampleTicket: () -> Unit,
     onSwitchRolePreview: () -> Unit
 ) {
+    val isLocalServer = LocalServerMode.current
     var showNotificationsSheet by rememberSaveable { mutableStateOf(false) }
     val unreadCount = notifications.count { !it.isRead }
 
@@ -200,7 +202,7 @@ fun StudentHomeDashboardScreen(
                         IconButton(onClick = onSwitchRolePreview) {
                             Icon(
                                 imageVector = Icons.Default.SwapHoriz,
-                                contentDescription = "Switch Role Preview",
+                                contentDescription = (if (isLocalServer) "Sign out" else "Switch Role Preview"),
                                 tint = Color.White
                             )
                         }
@@ -239,13 +241,13 @@ fun StudentHomeDashboardScreen(
                 } else {
                     CampusQEmptyState(
                         title = "No Active Queue Ticket",
-                        message = "You do not have an active queue ticket right now. Join a Registrar queue or restore the R-001 demonstration ticket.",
+                        message = (if (isLocalServer) "You do not have an active queue ticket right now. Join a Registrar queue or restore the R-001 ticket." else "You do not have an active queue ticket right now. Join a Registrar queue or restore the R-001 demonstration ticket."),
                         icon = Icons.Default.ConfirmationNumber,
                         actionButtonText = "Join Registrar Queue",
                         onActionClick = onOpenServices
                     )
                     Spacer(modifier = Modifier.height(8.dp))
-                    TextButton(
+                    if (!isLocalServer) TextButton(
                         onClick = onRestoreSampleTicket,
                         modifier = Modifier.align(Alignment.CenterHorizontally)
                     ) {
@@ -382,7 +384,7 @@ fun StudentHomeDashboardScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Notifications (Demo)",
+                        text = (if (isLocalServer) "Notifications" else "Notifications (Demo)"),
                         style = MaterialTheme.typography.titleLarge
                     )
                     TextButton(onClick = onMarkNotificationsRead) {
@@ -529,6 +531,7 @@ fun RegistrarServicesScreen(
     onJoinQueueForService: (RegistrarService) -> Unit,
     onBookAppointmentForService: (RegistrarService) -> Unit
 ) {
+    val isLocalServer = LocalServerMode.current
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var selectedServiceId by rememberSaveable { mutableStateOf<String?>(null) }
     val selectedService = services.find { it.id == selectedServiceId }
@@ -665,7 +668,7 @@ fun RegistrarServicesScreen(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
-                            text = "This service is currently disabled in Admin Service Management (Demo).",
+                            text = (if (isLocalServer) "This service is currently disabled in Admin Service Management." else "This service is currently disabled in Admin Service Management (Demo)."),
                             style = MaterialTheme.typography.bodySmall.copy(color = CampusQTextSecondary),
                             textAlign = TextAlign.Center,
                             modifier = Modifier.padding(12.dp)
@@ -673,7 +676,7 @@ fun RegistrarServicesScreen(
                     }
                 } else {
                     CampusQPrimaryButton(
-                        text = "Join Queue (Demo)",
+                        text = (if (isLocalServer) "Join Queue" else "Join Queue (Demo)"),
                         enabled = selectedService.isQueueEnabled,
                         onClick = {
                             val srv = selectedService
@@ -683,7 +686,7 @@ fun RegistrarServicesScreen(
                     )
                     Spacer(modifier = Modifier.height(10.dp))
                     CampusQSecondaryButton(
-                        text = "Book Appointment (Demo)",
+                        text = (if (isLocalServer) "Book Appointment" else "Book Appointment (Demo)"),
                         enabled = selectedService.isAppointmentEnabled,
                         onClick = {
                             val srv = selectedService
@@ -710,6 +713,7 @@ fun QueueStatusScreen(
     onJoinNewQueue: () -> Unit,
     onRestoreSampleTicket: () -> Unit
 ) {
+    val isLocalServer = LocalServerMode.current
     var showCancelDialog by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
@@ -742,7 +746,7 @@ fun QueueStatusScreen(
                     onActionClick = onJoinNewQueue
                 )
                 Spacer(modifier = Modifier.height(12.dp))
-                CampusQSecondaryButton(
+                if (!isLocalServer) CampusQSecondaryButton(
                     text = "Restore R-001 Demo Ticket",
                     onClick = onRestoreSampleTicket
                 )
@@ -772,7 +776,7 @@ fun QueueStatusScreen(
                             style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold)
                         )
                         Text(
-                            text = "Joined at ${activeTicket.timeJoined} • Demo State",
+                            text = (if (isLocalServer) "Joined at ${activeTicket.timeJoined} • Server record" else "Joined at ${activeTicket.timeJoined} • Demo State"),
                             style = MaterialTheme.typography.bodySmall
                         )
 
@@ -874,13 +878,13 @@ fun QueueStatusScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                if (activeTicket.status == QueueStatus.WAITING || activeTicket.status == QueueStatus.CALLED) {
+                if (activeTicket.status in setOf(QueueStatus.WAITING, QueueStatus.CALLED, QueueStatus.SKIPPED)) {
                     CampusQDestructiveButton(
                         text = "Cancel Ticket",
                         onClick = { showCancelDialog = true }
                     )
                 } else {
-                    CampusQSecondaryButton(
+                    if (!isLocalServer) CampusQSecondaryButton(
                         text = "Restore R-001 to WAITING (Demo)",
                         onClick = onRestoreSampleTicket
                     )
@@ -892,7 +896,7 @@ fun QueueStatusScreen(
     if (showCancelDialog && activeTicket != null) {
         CampusQConfirmationDialog(
             title = "Cancel Queue Ticket?",
-            message = "Are you sure you want to cancel demonstration ticket ${activeTicket.ticketNumber} for ${activeTicket.serviceName}?",
+            message = (if (isLocalServer) "Are you sure you want to cancel ticket ${activeTicket.ticketNumber} for ${activeTicket.serviceName}?" else "Are you sure you want to cancel demonstration ticket ${activeTicket.ticketNumber} for ${activeTicket.serviceName}?"),
             confirmText = "Cancel Ticket",
             isDestructive = true,
             onConfirm = {

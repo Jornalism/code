@@ -1,5 +1,6 @@
 package com.example.campusq.ui.components
 
+import com.example.campusq.ui.navigation.LocalServerMode
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -206,6 +207,8 @@ fun CampusQDemoLabel(
     modifier: Modifier = Modifier,
     isOnDarkHeader: Boolean = false
 ) {
+    if (LocalServerMode.current) return
+
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(50),

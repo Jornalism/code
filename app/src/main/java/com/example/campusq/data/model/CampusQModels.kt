@@ -72,7 +72,8 @@ data class RegistrarService(
     val isAvailable: Boolean = true,
     val isQueueEnabled: Boolean = true,
     val isAppointmentEnabled: Boolean = true,
-    val estimatedMinutes: Int = 10
+    val estimatedMinutes: Int = 10,
+    val version: Int = 0
 )
 
 @Immutable
@@ -90,7 +91,8 @@ data class QueueTicket(
     val timeJoined: String,
     val waitingDurationText: String,
     val startTime: String? = null,
-    val completedTime: String? = null
+    val completedTime: String? = null,
+    val version: Int = 0
 )
 
 @Immutable
@@ -104,7 +106,8 @@ data class Appointment(
     val dateText: String,
     val timeSlot: String,
     val status: AppointmentStatus,
-    val isToday: Boolean = true
+    val isToday: Boolean = true,
+    val version: Int = 0
 )
 
 @Immutable

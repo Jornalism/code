@@ -1,0 +1,37 @@
+<resources>
+    <string name="auth_verify_title">Verify your email</string>
+    <string name="auth_verify_body">Your account exists. Verify your inbox using the email link, then recheck here. Verification confirms inbox control, not enrollment or employee authorization.</string>
+    <string name="auth_pending_title">Authorization pending</string>
+    <string name="auth_pending_body">Your account is waiting for authorization. Your student profile has not been saved. Email verification alone does not confirm enrollment or employee access.</string>
+    <string name="auth_profile_title">Profile unavailable</string>
+    <string name="auth_profile_body">Your account profile cannot currently be verified. Live access is unavailable. You can retry or use the separate Demo Mode.</string>
+    <string name="auth_live_title">Live features unavailable</string>
+    <string name="auth_live_body">This stage does not connect live role features. Demo Mode is a separate preview using local sample data.</string>
+    <string name="auth_initializing">Checking your session…</string>
+    <string name="auth_resend">Resend verification email</string>
+    <plurals name="auth_resend_wait">
+        <item quantity="one">Resend available in %1$d second</item>
+        <item quantity="other">Resend available in %1$d seconds</item>
+    </plurals>
+    <string name="auth_recheck">Recheck verification and session</string>
+    <string name="auth_sign_out">Sign out</string>
+    <string name="auth_demo">Open Demo Mode</string>
+    <string name="auth_demo_description">Demo Mode uses local sample data and grants no real Firebase authority. Preview any of the 23 screens:</string>
+    <string name="auth_recovery_title">Password recovery</string>
+    <string name="auth_recovery_body">Request a password recovery email for the email address above?</string>
+    <string name="auth_recovery_send">Send recovery email</string>
+    <string name="auth_recovery_notice">If an account can receive recovery email, a link has been requested. Check your inbox.</string>
+    <string name="auth_verification_notice">Verification email requested. Check your inbox before rechecking.</string>
+    <string name="auth_account_notice">Account created. Your student profile has not been saved; onboarding is still required.</string>
+    <string name="auth_error_input">Check your name, Student ID, email and password fields.</string>
+    <string name="auth_error_match">Passwords do not match.</string>
+    <string name="auth_error_credentials">Unable to sign in with those credentials.</string>
+    <string name="auth_error_account">This account is unavailable. Contact the account administrator.</string>
+    <string name="auth_error_network">Network unavailable. Check your connection and retry.</string>
+    <string name="auth_error_throttled">Too many requests. Wait before retrying.</string>
+    <string name="auth_error_provider">Authentication is unavailable in this build. Try Demo Mode or contact the CampusQ administrator.</string>
+    <string name="auth_error_password">The password does not meet the authentication provider requirements.</string>
+    <string name="auth_error_registration">Registration could not be completed. Try signing in or requesting password recovery.</string>
+    <string name="auth_error_verification">Verification email could not be requested. Keep this account signed in and retry later.</string>
+    <string name="auth_error_unknown">Authentication could not be completed. Retry without sharing your password or tokens.</string>
+</resources>
