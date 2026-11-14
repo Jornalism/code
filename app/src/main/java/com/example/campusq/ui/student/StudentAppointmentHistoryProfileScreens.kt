@@ -26,22 +26,7 @@ import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.ConfirmationNumber
 import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.SwapHoriz
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
-import androidx.compose.material3.Text
+
 import androidx.compose.material3.TextButton
 import com.example.campusq.data.model.AppointmentSlot
 import com.example.campusq.data.model.isReserved
@@ -55,52 +40,7 @@ import com.example.campusq.ui.components.CampusQAppointmentCard
 import com.example.campusq.ui.components.CampusQSectionHeading
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.example.campusq.R
-import com.example.campusq.data.model.RegistrarService
-import com.example.campusq.data.model.StudentProfile
-import com.example.campusq.data.model.TransactionRecord
-import com.example.campusq.data.model.TransactionType
-import com.example.campusq.ui.components.CampusQAppointmentStatusChip
-import com.example.campusq.ui.components.CampusQBottomNavigation
-import com.example.campusq.ui.components.CampusQCard
-import com.example.campusq.ui.components.CampusQConfirmationDialog
-import com.example.campusq.ui.components.CampusQDateSelector
-import com.example.campusq.ui.components.CampusQEmptyState
-import com.example.campusq.ui.components.CampusQFilterTabs
-import com.example.campusq.ui.components.CampusQPrimaryButton
-import com.example.campusq.ui.components.CampusQProfileHeader
-import com.example.campusq.ui.components.CampusQProfileMenuItem
-import com.example.campusq.ui.components.CampusQQueueStatusChip
-import com.example.campusq.ui.components.CampusQTextField
-import com.example.campusq.ui.components.CampusQTimeSlotChip
-import com.example.campusq.ui.components.CampusQTopAppBar
-import com.example.campusq.ui.components.getServiceIcon
-import com.example.campusq.ui.navigation.CampusQRoutes
-import com.example.campusq.ui.theme.CampusQBackground
-import com.example.campusq.ui.theme.CampusQGreenDark
-import com.example.campusq.ui.theme.CampusQGreenLight
-import com.example.campusq.ui.theme.CampusQError
-import com.example.campusq.ui.theme.CampusQGreenPrimary
-import com.example.campusq.ui.theme.CampusQSurface
-import com.example.campusq.ui.theme.CampusQTextPrimary
-import com.example.campusq.ui.theme.CampusQTextSecondary
-import java.time.DayOfWeek
-import java.time.LocalDate
-import java.time.YearMonth
-import java.time.format.DateTimeFormatter
-import java.util.Locale
+
 
 /**
  * SCREEN 07 — BOOK APPOINTMENT
