@@ -18,8 +18,4 @@ export function openDatabase(path) {
   }
   return db;
 }
-export function transaction(db, action) {
-  db.exec('BEGIN IMMEDIATE');
-  try { const value = action(); db.exec('COMMIT'); return value; }
-  catch (error) { db.exec('ROLLBACK'); throw error; }
-}
+
