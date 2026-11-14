@@ -23,26 +23,9 @@ import com.example.campusq.ui.components.CampusQSecondaryButton
 import com.example.campusq.ui.components.CampusQSectionHeading
 import com.example.campusq.ui.components.CampusQServiceCard
 import com.example.campusq.ui.components.CampusQTicketCard
-import com.example.campusq.ui.components.CampusQTopAppBar
-import com.example.campusq.ui.components.getServiceIcon
-import com.example.campusq.ui.navigation.CampusQRoutes
-import com.example.campusq.ui.theme.CampusQBackground
-import com.example.campusq.ui.theme.CampusQGreenDark
-import com.example.campusq.ui.theme.CampusQGreenLight
-import com.example.campusq.ui.theme.CampusQGreenPrimary
-import com.example.campusq.ui.theme.CampusQOutline
-import com.example.campusq.ui.theme.CampusQSurface
-import com.example.campusq.ui.theme.CampusQTextMuted
-import com.example.campusq.ui.theme.CampusQTextPrimary
-import com.example.campusq.ui.theme.CampusQTextSecondary
 
-val studentBottomDestinations = listOf(
-    CampusQNavDestination(CampusQRoutes.STUDENT_HOME, "Home", Icons.Default.Home),
-    CampusQNavDestination(CampusQRoutes.STUDENT_QUEUE_STATUS, "Queue", Icons.AutoMirrored.Filled.FormatListBulleted),
-    CampusQNavDestination(CampusQRoutes.STUDENT_BOOK_APPOINTMENT, "Appointments", Icons.Default.CalendarMonth),
-    CampusQNavDestination(CampusQRoutes.STUDENT_HISTORY, "History", Icons.Default.History),
-    CampusQNavDestination(CampusQRoutes.STUDENT_PROFILE, "Profile", Icons.Default.Person)
-)
+
+
 
 /**
  * SCREEN 04 — STUDENT HOME DASHBOARD
@@ -138,26 +121,7 @@ fun StudentHomeDashboardScreen(
                                 tint = Color.White
                             )
                         }
-                        IconButton(onClick = { showNotificationsSheet = true }) {
-                            BadgedBox(
-                                badge = {
-                                    if (unreadCount > 0) {
-                                        Badge(containerColor = Color.White, contentColor = CampusQGreenDark) {
-                                            Text(unreadCount.toString())
-                                        }
-                                    }
-                                }
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Notifications,
-                                    contentDescription = "Notifications",
-                                    tint = Color.White
-                                )
-                            }
-                        }
-                    }
-                }
-            }
+                    
 
             Column(
                 modifier = Modifier
@@ -183,21 +147,7 @@ fun StudentHomeDashboardScreen(
                         onClick = onRestoreSampleTicket,
                         modifier = Modifier.align(Alignment.CenterHorizontally)
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Refresh,
-                            contentDescription = null,
-                            tint = CampusQGreenPrimary,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = "Restore R-001 Demo Ticket",
-                            color = CampusQGreenDark,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
-                }
-
+             
                 Spacer(modifier = Modifier.height(20.dp))
 
                 CampusQSectionHeading(title = "Quick Actions")
@@ -233,38 +183,7 @@ fun StudentHomeDashboardScreen(
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    SmallQuickActionTile(
-                        label = "Services",
-                        icon = Icons.Default.MiscellaneousServices,
-                        onClick = onOpenServices,
-                        modifier = Modifier.weight(1f)
-                    )
-                    SmallQuickActionTile(
-                        label = "History",
-                        icon = Icons.Default.History,
-                        onClick = onOpenHistory,
-                        modifier = Modifier.weight(1f)
-                    )
-                    SmallQuickActionTile(
-                        label = "Notifications",
-                        icon = Icons.Default.Notifications,
-                        badgeCount = unreadCount,
-                        onClick = { showNotificationsSheet = true },
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                // Campus Registrar Info Card with Campus Building Image
-                CampusQCard(contentPadding = 0.dp) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(14.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+               
                         Image(
                             painter = painterResource(id = R.drawable.img_campus_building),
                             contentDescription = "Campus Building Illustration",
@@ -272,50 +191,7 @@ fun StudentHomeDashboardScreen(
                             modifier = Modifier
                                 .size(68.dp)
                                 .clip(RoundedCornerShape(12.dp))
-                        )
-                        Spacer(modifier = Modifier.width(14.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "Office of the Registrar",
-                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                            )
-                            Spacer(modifier = Modifier.height(2.dp))
-                            Text(
-                                text = "Mon – Fri • 8:00 AM – 5:00 PM",
-                                style = MaterialTheme.typography.bodySmall.copy(
-                                    color = CampusQGreenDark,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                            )
-                            Spacer(modifier = Modifier.height(2.dp))
-                            Text(
-                                text = "Bring your valid Student ID when your ticket is called.",
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    if (showNotificationsSheet) {
-        ModalBottomSheet(
-            onDismissRequest = { showNotificationsSheet = false },
-            containerColor = CampusQSurface
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 20.dp, vertical = 12.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
+                    
                         text = (if (isLocalServer) "Notifications" else "Notifications (Demo)"),
                         style = MaterialTheme.typography.titleLarge
                     )
@@ -361,12 +237,7 @@ private fun ProminentQuickActionTile(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val bgColor = if (isPrimary) CampusQGreenDark else CampusQGreenLight
-    val titleColor = if (isPrimary) Color.White else CampusQGreenDark
-    val subColor = if (isPrimary) Color.White.copy(alpha = 0.85f) else CampusQTextSecondary
-    val iconTint = if (isPrimary) Color.White else CampusQGreenPrimary
-
-    Surface(
+ 
         modifier = modifier
             .clip(RoundedCornerShape(16.dp))
             .clickable(onClick = onClick),
@@ -416,27 +287,7 @@ private fun SmallQuickActionTile(
         modifier = modifier
             .clip(RoundedCornerShape(14.dp))
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(14.dp),
-        color = CampusQGreenLight
-    ) {
-        Column(
-            modifier = Modifier.padding(vertical = 14.dp, horizontal = 8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            BadgedBox(
-                badge = {
-                    if (badgeCount > 0) {
-                        Badge(containerColor = CampusQGreenPrimary, contentColor = Color.White) {
-                            Text(badgeCount.toString())
-                        }
-                    }
-                }
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = label,
-                    tint = CampusQGreenPrimary,
-                    modifier = Modifier.size(24.dp)
+
                 )
             }
             Spacer(modifier = Modifier.height(6.dp))
@@ -545,26 +396,7 @@ fun RegistrarServicesScreen(
                                 tint = CampusQGreenPrimary,
                                 modifier = Modifier.size(24.dp)
                             )
-                        }
-                    }
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Column {
-                        Text(
-                            text = selectedService.name,
-                            style = MaterialTheme.typography.titleLarge
-                        )
-                        Text(
-                            text = "Est. processing time: ~${selectedService.estimatedMinutes} mins",
-                            style = MaterialTheme.typography.bodySmall.copy(color = CampusQGreenDark)
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-                Text(
-                    text = selectedService.description,
-                    style = MaterialTheme.typography.bodyMedium.copy(color = CampusQTextPrimary)
-                )
+       
 
                 Spacer(modifier = Modifier.height(14.dp))
                 Text(
