@@ -1,11 +1,6 @@
 import http from 'node:http';
 import https from 'node:https';
 import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
-import { openDatabase } from './database.mjs';
-import { CampusQService } from './service.mjs';
-import { ApiError, requireValue, fields } from './security.mjs';
 
 async function bodyOf(req) {
  requireValue((req.headers['content-type']??'').split(';')[0]==='application/json','Use application/json.',415,'CONTENT_TYPE');
@@ -14,14 +9,6 @@ async function bodyOf(req) {
  try{return JSON.parse(Buffer.concat(parts).toString('utf8'));}
  catch(error){if(error instanceof ApiError)throw error;throw new ApiError(400,'INVALID_JSON','Invalid JSON request.');}
 }
-export function createCampusQServer({databasePath, tls=null}){
- const db=openDatabase(databasePath),service=new CampusQService(db);
- let pending=0;
- const handler=async(req,res)=>{
-   res.setHeader('Cache-Control','no-store');
-   res.setHeader('X-Content-Type-Options','nosniff');
-   const send=(status,value)=>{res.writeHead(status,{'Content-Type':'application/json; charset=utf-8'});res.end(JSON.stringify(value));};
-   pending++;
    try {
      requireValue(pending<=64,'Server is busy.',503,'BUSY');
      requireValue(!req.headers.origin,'Browser cross-origin requests are not supported.',403,'FORBIDDEN');
@@ -49,12 +36,7 @@ export function createCampusQServer({databasePath, tls=null}){
        if(method==='PATCH')return send(200,service.saveService(user,match[1],await bodyOf(req)));
        if(method==='DELETE')return send(200,service.deleteService(user,match[1]));
      }
-     if(path==='/api/staff' && method==='POST'){service.role(user,'ADMIN');return send(201,{user:await service.createUser(await bodyOf(req),'STAFF',user.id)});}
-     if((match=path.match(/^\/api\/staff\/([A-Za-z0-9-]+)$/)) && method==='PATCH')return send(200,service.updateStaff(user,match[1],await bodyOf(req)));
-     if(path==='/api/profile' && method==='PATCH')return send(200,service.updateProfile(user,await bodyOf(req)));
-     if(path==='/api/settings' && method==='PATCH')return send(200,service.updateSettings(user,await bodyOf(req)));
-     if(path==='/api/notifications/read' && method==='POST'){service.run('UPDATE notifications SET is_read=1 WHERE user_id=?',user.id);return send(200,{saved:true});}
-     throw new ApiError(404,'NOT_FOUND','Endpoint not found.');
+  
    }catch(error){
      if(error instanceof ApiError)return send(error.status,{error:{code:error.code,message:error.message}});
      if(error.code?.startsWith('ERR_SQLITE') && /constraint|UNIQUE|FOREIGN KEY/i.test(error.message))return send(409,{error:{code:'CONFLICT',message:'This operation conflicts with an existing record. Refresh and check the booking or account details.'}});
@@ -63,10 +45,7 @@ export function createCampusQServer({databasePath, tls=null}){
      send(500,{error:{code:'SERVER_ERROR',message:'The operation could not be completed. Try again.'}});
    }finally{pending--;}
  };
- const server=tls?https.createServer(tls,handler):http.createServer(handler);
- server.requestTimeout=15000;server.headersTimeout=10000;server.keepAliveTimeout=5000;
- return {server,service,db,async close(){server.closeIdleConnections();await new Promise((yes,no)=>server.close(e=>e?no(e):yes()));db.close();}};
-}
+
 if(process.argv[1] && import.meta.url===pathToFileURL(resolve(process.argv[1])).href){
  const host=process.env.CAMPUSQ_HOST??'127.0.0.1',port=Number(process.env.CAMPUSQ_PORT??8787);
  const cert=process.env.CAMPUSQ_TLS_CERT,key=process.env.CAMPUSQ_TLS_KEY;
